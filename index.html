@@ -13,9 +13,8 @@
 <script type="importmap">
 {
   "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-    "three-globe": "https://esm.sh/three-globe@2.31.1?external=three"
+    "three": "https://esm.sh/three@0.160.0",
+    "three/": "https://esm.sh/three@0.160.0/"
   }
 }
 </script>
@@ -304,8 +303,8 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import ThreeGlobe from 'three-globe';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js?external=three';
+import ThreeGlobe from 'https://esm.sh/three-globe@2.31.1?external=three';
 import { CITIES } from './cities.js';
 
 /* ---------------- storage ---------------- */
