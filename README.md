@@ -1,4 +1,4 @@
-# Mijn Reisalbum — interactieve 3D wereldkaart (Fase 1 + Fase 2)
+# Mijn Reisalbum — interactieve 3D wereldkaart (Fase 1 + 2 + 3)
 
 ## Gebruiken
 Zet alle bestanden en mappen hieronder samen in je repo (root of `/docs`
@@ -13,75 +13,74 @@ assets/
   earth-topology.png
 ```
 
-Lokaal testen: `python3 -m http.server 8000` (niet als `file://` openen).
+Lokaal testen: `python3 -m http.server 8000` (niet als `file://` openen —
+IndexedDB en de geojson-fetch werken dan niet).
 
-## Fixes n.a.v. je feedback op Fase 1
-- **Auto-rotatie staat nu standaard uit** (toggle in ⚙ Kaartweergave staat
-  standaard uit; je kunt 'm zelf aanzetten).
-- **Klikken op een land zoomt nu automatisch en vloeiend in** — de
-  zoomafstand past zich aan de grootte van het land aan (dichterbij voor
-  Nederland, verder weg voor Rusland), dus je hoeft niet meer zelf handmatig
-  bij te zoomen.
-- **De wazige kaart bij inzoomen is verholpen.** De oorzaak: de gebruikte
-  globe-textuur was maar 1600×800 pixels — veel te laag voor dichtbij. Ik
-  gebruik nu een 4096×2048 textuur (`earth-blue-marble.jpg`, standaard
-  meegeleverd in de three-globe-library) plus anisotropic filtering en een
-  fijnere bol-curvatuur, wat er samen voor zorgt dat de kaart scherp blijft
-  tot vlak boven het landoppervlak.
+## Fase 3 — Foto's
 
-## Fase 2 — Reizen & tijdlijn
-- **Nieuw navigatie-item werkt nu echt**: "📖 Mijn reizen" toont al je
-  reizen als kaartjes (bestemming, data, aantal plekken).
-- **Reis aanmaken**: via "+ Nieuwe reis" (in Mijn Reizen, of direct vanuit
-  een landpaneel als "+ Nieuwe reis naar [land]") vul je naam, start-/
-  einddatum en een notitie in.
-- **Reistijdlijn**: binnen een reis zie je een verticale tijdlijn van
-  plaatsen — elk met datum en notitie, en een kruisje om te verwijderen.
-  "+ Plaats toevoegen" laat je een stad kiezen (met suggesties uit de
-  bekende steden van dat land) plus datum en notitie.
-- **Route op de globe**: zodra een reis met 2+ plaatsen (met bekende
-  coördinaten) geopend is, tekent de bol een zachte koraalkleurige,
-  geanimeerde route-lijn tussen de plekken, en zoomt de camera automatisch
-  naar het gebied van de reis.
-- **Landpaneel toont nu ook "Mijn reizen"** voor dat land, met snelkoppeling
-  naar elke reis.
-- Reis bewerken/verwijderen kan via de potlood-/prullenbak-iconen in de
-  reisdetailweergave (met bevestiging bij verwijderen).
+- **Foto's toevoegen per plek**: elke plaats in een reistijdlijn heeft nu een
+  fotostrip met een "+"-tegel. Klik erop voor de bestandenkiezer, of sleep
+  foto's er direct op (drag & drop).
+- **IndexedDB, geen localStorage** — precies zoals gevraagd: foto's (die al
+  snel groot worden) gaan naar IndexedDB; localStorage blijft voor lichte
+  data (status, steden, reismetadata). Foto's worden bij het uploaden
+  automatisch teruggeschaald naar max. 1600px zodat de opslag niet
+  onnodig volloopt.
+- **Lightbox**: klik op elke foto (in de tijdlijn, een landpaneel, de
+  reisomslag, of het fotoalbum) voor een groot lichtbak-scherm met
+  pijltjestoetsen/knoppen om te bladeren, een bewerkbare bijschrift-regel,
+  en een verwijderknop.
+- **Covers**: een reiskaart en de reisdetailpagina tonen automatisch de
+  eerst-geüploade foto als omslagfoto (i.p.v. de vlag-placeholder) zodra
+  die er is.
+- **Landpagina als mini-fotoalbum**: zodra een land foto's heeft, krijgt het
+  landpaneel een hero-afbeelding bovenaan en een "Memory gallery"
+  thumbnail-grid onderaan. De statusregel toont nu ook
+  "X reizen · Y steden bezocht · Z herinneringen".
+- **Fotoalbum-pagina werkt nu echt**: alle foto's van al je reizen door
+  elkaar, met simpele filterchips (Alles / per jaar / per land) en een
+  luchtig masonry-grid.
 
-## Wat nog niet is gebouwd (Fase 3 & 4)
-- Foto's uploaden, IndexedDB, gallery, lightbox, captions
-- Memories-overzicht, paspoortstempels, extra polish/animaties
+## Fase 1 & 2 (ter herinnering)
+Warme travel-journal stijl, navigatie, drie landstatussen (bezocht/
+bucketlist/niet bezocht), land selecteren met adaptieve zoom, zichtbare
+stedentoggle, reizen aanmaken met tijdlijn en route-op-de-globe. Zie de
+eerdere versies van dit bestand voor details — die functionaliteit is
+ongewijzigd gebleven.
+
+## Wat nog niet is gebouwd (Fase 4)
+- Algeheel "memories"-overzicht met extra statistieken
+- Paspoortstempels (decoratief detail per land)
+- Verdere polish/kleine animaties
 
 ## Bestanden aangepast in deze update
-- **`src/main.js`** — auto-rotate default uit, adaptieve zoom-naar-land
-  met scherpere randafhandeling, hogere-resolutie textuur + anisotropic
-  filtering, volledig nieuw datamodel + UI voor reizen (`reisalbum_trips_v1`
-  in localStorage), generiek formulier-modal-systeem, reistijdlijn, route-
-  op-de-globe via een arcs-laag, en integratie in het landdetailpaneel.
-- **`index.html`** — nieuwe modal-opmaak, tripkaarten, tijdlijn-styling,
-  "Mijn reizen"-overzicht en -detailweergave, kleine bugfix (stedensectie
-  in het landpaneel werd soms afgebroken vóór de nieuwe reizen-sectie kon
-  renderen — nu opgelost).
-- **`assets/earth-blue-marble.jpg`** vervangt `earth-day.jpg` (4096×2048 i.p.v.
-  1600×800).
-- `bundle.js` opnieuw gegenereerd vanuit `src/main.js`.
-- `cities.js`, `countries.geojson` — ongewijzigd.
+- **`src/main.js`** — volledige IndexedDB-laag (`reisalbum_db`, store
+  `photos`, met indexes op plaats/reis/land), afbeelding-compressie via
+  canvas, upload + drag&drop per plek, lightbox-component, fotoalbum-
+  weergave met filters, cover-logica voor reiskaarten en -detail, hero +
+  memory gallery in het landpaneel.
+- **`index.html`** — lightbox-markup en -stijl, fotostrip-stijl in de
+  tijdlijn, hero/memory-gallery-stijl, echt fotoalbum-grid i.p.v. de
+  placeholder, trip-cover met afbeelding.
+- `bundle.js` opnieuw gegenereerd.
+- `cities.js`, `countries.geojson`, de textures — ongewijzigd.
 
 ## Datastructuur
 ```js
-// localStorage: reisalbum_status_v1
-{ [countryKey]: 'visited' | 'bucketlist' }
+// IndexedDB: reisalbum_db → store "photos" (indexes: placeId, tripId, countryKey)
+{ id, tripId, placeId, countryKey, countryName, city, blob, caption, date, createdAt }
 
-// localStorage: reisalbum_cities_v1
-{ [countryKey]: { [cityName]: true } }
-
-// localStorage: reisalbum_trips_v1
-[{
-  id, countryKey, countryName, name, startDate, endDate, note,
-  places: [{ id, city, date, note, lat, lng }]
-}]
+// localStorage (ongewijzigd t.o.v. Fase 1/2)
+reisalbum_status_v1   // { [countryKey]: 'visited' | 'bucketlist' }
+reisalbum_cities_v1   // { [countryKey]: { [cityName]: true } }
+reisalbum_trips_v1    // [{ id, countryKey, countryName, name, startDate, endDate, note, places[] }]
 ```
-Voor Fase 3 (foto's) komt hier een `photos`-laag in IndexedDB bij, gekoppeld
-aan `placeId`, zoals afgesproken in je oorspronkelijke opzet.
 
-Zeg het gerust als dit goed aanvoelt — dan ga ik door met Fase 3 (foto's).
+## Let op
+Foto's zitten in de IndexedDB van de browser — die staat **lokaal op het
+apparaat** en gaat niet automatisch mee als je GitHub Pages opnieuw
+deployt of op een ander apparaat/browser inlogt. Een export/backup-functie
+zou een mooie toevoeging zijn voor een latere fase, mocht je dat willen.
+
+Zeg het gerust als dit goed werkt — dan pak ik Fase 4 op (memories-
+overzicht, paspoortstempels, polish).

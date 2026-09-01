@@ -224,6 +224,80 @@
   .city-name{font-size:13.5px; color:var(--ink); flex:1;}
   .city-tag{font-size:10.5px; font-weight:700; color:var(--gold-deep); background:rgba(227,172,61,0.16); padding:2px 7px; border-radius:8px;}
 
+  .detail-hero{
+    width:100%; height:0; border-radius:16px; overflow:hidden; margin:10px 0 -4px; background:var(--sand);
+    transition:height .2s ease;
+  }
+  .detail-hero.has-image{height:150px;}
+  .detail-hero img{width:100%; height:100%; object-fit:cover; display:block; cursor:pointer;}
+
+  .memory-title{font-size:12px; font-weight:700; color:var(--ink-soft); margin:0 0 8px;}
+  .memory-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;}
+  .memory-thumb{
+    aspect-ratio:1; border-radius:10px; overflow:hidden; cursor:pointer; background:var(--sand);
+    position:relative;
+  }
+  .memory-thumb img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .2s ease;}
+  .memory-thumb:hover img{transform:scale(1.06);}
+  .memory-more{
+    display:flex; align-items:center; justify-content:center; background:rgba(51,44,34,0.55); color:#fff;
+    font-size:13px; font-weight:700; position:absolute; inset:0;
+  }
+
+  /* photo strip inside timeline cards */
+  .photo-strip{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
+  .photo-thumb{width:52px; height:52px; border-radius:8px; overflow:hidden; cursor:pointer; background:var(--sand); flex:none;}
+  .photo-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .photo-add-tile{
+    width:52px; height:52px; border-radius:8px; border:1.5px dashed var(--line-strong); flex:none;
+    display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-size:20px; cursor:pointer;
+    transition:all .15s ease; background:transparent;
+  }
+  .photo-add-tile:hover{background:var(--cream); border-color:var(--ink-faint); color:var(--ink-soft);}
+  .photo-add-tile.dragover{background:var(--cream-deep); border-color:var(--coral); color:var(--coral-deep);}
+
+  /* fotoalbum grid */
+  .album-grid{column-count:2; column-gap:10px; margin-top:8px;}
+  .album-thumb{
+    break-inside:avoid; margin-bottom:10px; border-radius:14px; overflow:hidden; cursor:pointer;
+    background:var(--sand); box-shadow:var(--shadow-sm);
+  }
+  .album-thumb img{width:100%; display:block;}
+  @media (min-width:560px){ .album-grid{column-count:3;} }
+
+  /* lightbox */
+  .lightbox{
+    position:fixed; inset:0; z-index:60; background:rgba(20,17,12,0.94);
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+  }
+  .lightbox.open{display:flex;}
+  .lb-stage{max-width:min(88vw,900px); max-height:62vh; display:flex; align-items:center; justify-content:center;}
+  .lb-stage img{max-width:100%; max-height:62vh; border-radius:10px; object-fit:contain; box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+  .lb-close{
+    position:absolute; top:20px; right:20px; width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,0.12); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .lb-close:hover{background:rgba(255,255,255,0.22);}
+  .lb-nav{
+    position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%;
+    background:rgba(255,255,255,0.12); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .lb-nav:hover{background:rgba(255,255,255,0.22);}
+  .lb-prev{left:20px;} .lb-next{right:20px;}
+  .lb-nav svg, .lb-close svg{width:18px; height:18px;}
+  .lb-meta{width:100%; max-width:500px; margin-top:18px; text-align:center; padding:0 20px;}
+  .lb-caption{
+    width:100%; background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,0.25); color:#FBF7EE;
+    font-family:var(--serif); font-size:16px; text-align:center; padding:6px 4px; outline:none;
+  }
+  .lb-caption::placeholder{color:rgba(251,247,238,0.45);}
+  .lb-sub{font-size:12px; color:rgba(251,247,238,0.55); margin-top:8px;}
+  .lb-delete{
+    margin-top:14px; background:transparent; border:1px solid rgba(255,255,255,0.25); color:rgba(251,247,238,0.75);
+    border-radius:10px; padding:8px 16px; font-family:var(--sans); font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .lb-delete:hover{background:rgba(232,120,90,0.25); border-color:var(--coral);}
+
   /* ---------------- overlay views (bucketlist / trips / album) ---------------- */
   .view-overlay{
     position:fixed; inset:0; z-index:12; background:rgba(251,247,238,0.92); backdrop-filter:blur(6px);
@@ -284,8 +358,9 @@
   .trip-card:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
   .trip-card-cover{
     height:88px; background:linear-gradient(135deg, var(--sky), var(--ocean));
-    display:flex; align-items:center; justify-content:center; font-size:34px;
+    display:flex; align-items:center; justify-content:center; font-size:34px; overflow:hidden;
   }
+  .trip-card-cover img{width:100%; height:100%; object-fit:cover;}
   .trip-card-body{padding:16px;}
   .trip-card-name{font-family:var(--serif); font-size:17px; font-weight:600; color:var(--ink); margin-bottom:2px;}
   .trip-card-dates{font-size:12px; color:var(--ink-soft); margin-bottom:10px;}
@@ -552,6 +627,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         Terug naar lijst
       </div>
+
+      <div id="detailHero"></div>
+
       <div class="detail-header">
         <div class="detail-flag" id="detailFlag">🌍</div>
         <div>
@@ -571,6 +649,8 @@
       <div id="detailCitiesSection"></div>
 
       <div id="detailTripsSection"></div>
+
+      <div id="detailMemoriesSection"></div>
     </div>
   </div>
 </div>
@@ -610,11 +690,26 @@
   <div class="view-inner">
     <div class="view-title">Fotoalbum</div>
     <div class="view-subtitle">Al je herinneringen op één plek.</div>
-    <div class="placeholder-card">
-      <div class="placeholder-emoji">📸</div>
-      <div class="placeholder-text">Je hebt hier nog geen foto's toegevoegd</div>
-      <div class="placeholder-sub">Zodra je reizen en foto's kunt toevoegen, verschijnen ze hier als een mooi overzicht.</div>
-    </div>
+    <div class="filter-chips" id="albumFilters"></div>
+    <div id="albumGrid"></div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lightboxClose" aria-label="Sluiten">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  </button>
+  <button class="lb-nav lb-prev" id="lightboxPrev" aria-label="Vorige foto">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+  </button>
+  <div class="lb-stage"><img id="lightboxImg" alt=""></div>
+  <button class="lb-nav lb-next" id="lightboxNext" aria-label="Volgende foto">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </button>
+  <div class="lb-meta">
+    <input class="lb-caption" id="lightboxCaption" placeholder="Voeg een herinnering toe…">
+    <div class="lb-sub" id="lightboxSub"></div>
+    <button class="lb-delete" id="lightboxDelete">Verwijderen</button>
   </div>
 </div>
 
