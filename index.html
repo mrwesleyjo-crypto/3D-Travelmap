@@ -224,7 +224,7 @@
   .city-name{font-size:13.5px; color:var(--ink); flex:1;}
   .city-tag{font-size:10.5px; font-weight:700; color:var(--gold-deep); background:rgba(227,172,61,0.16); padding:2px 7px; border-radius:8px;}
 
-  /* ---------------- overlay views (bucketlist / trips / album placeholders) ---------------- */
+  /* ---------------- overlay views (bucketlist / trips / album) ---------------- */
   .view-overlay{
     position:fixed; inset:0; z-index:12; background:rgba(251,247,238,0.92); backdrop-filter:blur(6px);
     display:none; overflow-y:auto; padding:100px 24px 40px;
@@ -259,6 +259,111 @@
   .bucket-actions button.primary{background:var(--coral); border-color:var(--coral); color:#fff;}
   .bucket-actions button:hover{background:var(--cream-deep);}
   .bucket-actions button.primary:hover{background:var(--coral-deep);}
+
+  .view-header-row{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:28px;}
+  .btn-primary{
+    background:var(--coral); color:#fff; border:none; border-radius:12px; padding:11px 18px;
+    font-family:var(--sans); font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
+    transition:background .15s ease, transform .15s ease; box-shadow:var(--shadow-sm);
+  }
+  .btn-primary:hover{background:var(--coral-deep); transform:translateY(-1px);}
+  .btn-ghost{
+    background:transparent; color:var(--ink-soft); border:1px solid var(--line-strong); border-radius:12px;
+    padding:10px 16px; font-family:var(--sans); font-size:13px; font-weight:600; cursor:pointer;
+    transition:background .15s ease;
+  }
+  .btn-ghost:hover{background:var(--cream-deep);}
+  .btn-danger{color:var(--coral-deep);}
+
+  /* trip cards */
+  .trips-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:16px;}
+  .trip-card{
+    background:var(--card); border:1px solid var(--line); border-radius:18px; overflow:hidden;
+    box-shadow:var(--shadow-sm); cursor:pointer; transition:transform .16s ease, box-shadow .16s ease;
+  }
+  .trip-card:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
+  .trip-card-cover{
+    height:88px; background:linear-gradient(135deg, var(--sky), var(--ocean));
+    display:flex; align-items:center; justify-content:center; font-size:34px;
+  }
+  .trip-card-body{padding:16px;}
+  .trip-card-name{font-family:var(--serif); font-size:17px; font-weight:600; color:var(--ink); margin-bottom:2px;}
+  .trip-card-dates{font-size:12px; color:var(--ink-soft); margin-bottom:10px;}
+  .trip-card-meta{font-size:11.5px; color:var(--ink-faint);}
+
+  /* trip detail / timeline */
+  .trip-detail-header{display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin:12px 0 24px;}
+  .trip-detail-name{font-family:var(--serif); font-size:26px; font-weight:600; color:var(--ink);}
+  .trip-detail-dates{font-size:13px; color:var(--ink-soft); margin-top:4px;}
+  .trip-detail-note{font-size:13.5px; color:var(--ink); margin-top:10px; line-height:1.5; max-width:480px;}
+  .trip-detail-actions{display:flex; gap:8px; flex:none;}
+  .icon-sm-btn{
+    width:34px; height:34px; border-radius:10px; border:1px solid var(--line-strong); background:var(--card);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink-soft);
+  }
+  .icon-sm-btn:hover{background:var(--cream-deep);}
+  .icon-sm-btn svg{width:15px; height:15px;}
+
+  .timeline{position:relative; padding-left:6px; margin-top:8px;}
+  .timeline-item{position:relative; padding:0 0 26px 30px;}
+  .timeline-item::before{
+    content:''; position:absolute; left:5px; top:4px; bottom:-4px; width:2px; background:var(--line-strong);
+  }
+  .timeline-item:last-child::before{display:none;}
+  .timeline-dot{
+    position:absolute; left:0; top:2px; width:12px; height:12px; border-radius:50%;
+    background:var(--coral); border:2px solid var(--card); box-shadow:0 0 0 2px var(--coral);
+  }
+  .timeline-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 16px; box-shadow:var(--shadow-sm);}
+  .timeline-row{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+  .timeline-city{font-family:var(--serif); font-size:16px; font-weight:600; color:var(--ink);}
+  .timeline-date{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .timeline-note{font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.5;}
+  .timeline-remove{color:var(--ink-faint); cursor:pointer; font-size:16px; line-height:1; flex:none;}
+  .timeline-remove:hover{color:var(--coral-deep);}
+  .add-place-btn{
+    margin-top:6px; width:100%; padding:12px; border-radius:12px; border:1.5px dashed var(--line-strong);
+    background:transparent; color:var(--ink-soft); font-family:var(--sans); font-size:13px; font-weight:600; cursor:pointer;
+  }
+  .add-place-btn:hover{background:var(--card); border-color:var(--ink-faint);}
+
+  /* trips section inside land detail panel */
+  .country-trip-row{
+    display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:10px;
+    background:var(--card); border:1px solid var(--line); margin-bottom:8px; cursor:pointer;
+  }
+  .country-trip-row:hover{background:var(--cream-deep);}
+  .country-trip-name{font-size:13.5px; font-weight:600; color:var(--ink);}
+  .country-trip-dates{font-size:11.5px; color:var(--ink-faint);}
+  .add-trip-btn{
+    width:100%; padding:10px; border-radius:10px; border:1.5px dashed var(--line-strong);
+    background:transparent; color:var(--ink-soft); font-family:var(--sans); font-size:12.5px; font-weight:600; cursor:pointer;
+    margin-top:2px;
+  }
+  .add-trip-btn:hover{background:var(--card); border-color:var(--ink-faint);}
+
+  /* form modal */
+  .modal-backdrop{
+    position:fixed; inset:0; z-index:40; background:rgba(51,44,34,0.35); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal-card{
+    background:var(--card); border-radius:20px; padding:24px; width:100%; max-width:400px;
+    box-shadow:var(--shadow); max-height:86vh; overflow-y:auto;
+  }
+  .modal-title{font-family:var(--serif); font-size:19px; font-weight:600; color:var(--ink); margin-bottom:16px;}
+  .modal-body{display:flex; flex-direction:column; gap:14px;}
+  .field-label{font-size:12px; font-weight:700; color:var(--ink-soft); display:block; margin-bottom:6px;}
+  .field-input{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line-strong);
+    background:var(--cream); color:var(--ink); font-family:var(--sans); font-size:13.5px; outline:none;
+  }
+  .field-input:focus{border-color:var(--ocean);}
+  textarea.field-input{resize:vertical; min-height:64px;}
+  .field-row{display:flex; gap:10px;}
+  .field-row > div{flex:1;}
+  .modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:20px;}
 
   /* ---------------- legend ---------------- */
   .legend{
@@ -342,6 +447,8 @@
       border:1px solid var(--line); cursor:pointer;
     }
     .view-overlay{padding:88px 16px 96px;}
+    .view-header-row{flex-direction:column; gap:12px;}
+    .trip-detail-header{flex-direction:column;}
   }
 </style>
 </head>
@@ -395,7 +502,7 @@
   <div class="setting-row">
     <span class="setting-label">🔄 Auto-rotatie</span>
     <label class="switch">
-      <input type="checkbox" id="rotateToggle" checked>
+      <input type="checkbox" id="rotateToggle">
       <span class="switch-track"></span>
     </label>
   </div>
@@ -462,18 +569,31 @@
       <div class="detail-message" id="detailMessage"></div>
 
       <div id="detailCitiesSection"></div>
+
+      <div id="detailTripsSection"></div>
     </div>
   </div>
 </div>
 
 <div class="view-overlay" id="viewTrips">
   <div class="view-inner">
-    <div class="view-title">Mijn reizen</div>
-    <div class="view-subtitle">Al je avonturen, netjes gebundeld.</div>
-    <div class="placeholder-card">
-      <div class="placeholder-emoji">🧳</div>
-      <div class="placeholder-text">Hier komen straks je reizen te staan</div>
-      <div class="placeholder-sub">Voeg reizen toe met data, steden en foto's — deze functie volgt in een volgende update.</div>
+    <div id="tripsListContainer">
+      <div class="view-header-row">
+        <div>
+          <div class="view-title">Mijn reizen</div>
+          <div class="view-subtitle">Al je avonturen, netjes gebundeld.</div>
+        </div>
+        <button class="btn-primary" id="newTripBtn">+ Nieuwe reis</button>
+      </div>
+      <div id="tripsGrid"></div>
+    </div>
+
+    <div id="tripDetailContainer" style="display:none;">
+      <div class="detail-back" id="tripDetailBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Terug naar mijn reizen
+      </div>
+      <div id="tripDetailBody"></div>
     </div>
   </div>
 </div>
@@ -494,6 +614,17 @@
       <div class="placeholder-emoji">📸</div>
       <div class="placeholder-text">Je hebt hier nog geen foto's toegevoegd</div>
       <div class="placeholder-sub">Zodra je reizen en foto's kunt toevoegen, verschijnen ze hier als een mooi overzicht.</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="formModal">
+  <div class="modal-card">
+    <div class="modal-title" id="formTitle">Nieuwe reis</div>
+    <div class="modal-body" id="formBody"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="formCancel">Annuleren</button>
+      <button class="btn-primary" id="formSave">Opslaan</button>
     </div>
   </div>
 </div>
