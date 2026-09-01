@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Wereldkaart · Reisjournaal</title>
-<meta name="description" content="Interactieve 3D wereldkaart om bezochte landen bij te houden.">
+<title>Mijn Reisalbum · Wereldkaart</title>
+<meta name="description" content="Je persoonlijke interactieve reisalbum op een 3D wereldkaart.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,216 +12,344 @@
 
 <style>
   :root{
-    --ink-950:#0a0e17;
-    --ink-900:#0e1420;
-    --ink-800:#141c2b;
-    --ink-700:#1c2740;
-    --ink-600:#2a3958;
-    --paper:#eee7d8;
-    --paper-dim:#a9a292;
-    --gold:#d4a24c;
-    --gold-bright:#f0bc63;
-    --coral:#e8785a;
-    --line:rgba(238,231,216,0.12);
-    --shadow:0 12px 40px rgba(0,0,0,0.45);
+    --cream:#FBF7EE;
+    --cream-deep:#F3EBD8;
+    --card:#FFFDF7;
+    --ink:#332C22;
+    --ink-soft:#7A7061;
+    --ink-faint:#A79E8C;
+    --ocean:#3E7C9A;
+    --sky:#8FC1DE;
+    --coral:#E8785A;
+    --coral-deep:#D4603F;
+    --gold:#E3AC3D;
+    --gold-deep:#C98F26;
+    --sage:#8CA07E;
+    --sand:#D9CCAE;
+    --line:rgba(51,44,34,0.10);
+    --line-strong:rgba(51,44,34,0.16);
+    --shadow:0 10px 34px rgba(80,61,33,0.14);
+    --shadow-sm:0 4px 14px rgba(80,61,33,0.10);
     --serif:'Fraunces', Georgia, serif;
     --sans:'Inter', system-ui, sans-serif;
   }
 
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; padding:0; height:100%; overflow:hidden; background:var(--ink-950); font-family:var(--sans); color:var(--paper);}
+  html,body{margin:0; padding:0; height:100%; overflow:hidden; background:var(--cream); font-family:var(--sans); color:var(--ink);}
 
-  #globe-container{position:fixed; inset:0; z-index:1; cursor:grab;}
+  #globe-container{position:fixed; inset:0; z-index:1; cursor:grab; background:radial-gradient(ellipse at 50% 40%, #EFE6D0 0%, var(--cream) 65%);}
   #globe-container.grabbing{cursor:grabbing;}
   #globe-container canvas{display:block;}
 
-  /* ---------- top bar ---------- */
+  /* ---------------- top bar ---------------- */
   .topbar{
     position:fixed; top:0; left:0; right:0; z-index:20;
     display:flex; align-items:center; justify-content:space-between;
-    padding:22px 28px;
+    padding:18px 24px;
     pointer-events:none;
   }
-  .brand{display:flex; align-items:baseline; gap:10px; pointer-events:auto;}
+  .brand{display:flex; align-items:center; gap:8px; pointer-events:auto;}
   .brand-mark{
-    font-family:var(--serif); font-weight:600; font-size:22px; letter-spacing:0.2px;
-    color:var(--paper);
+    font-family:var(--serif); font-weight:600; font-size:20px; letter-spacing:0.1px;
+    color:var(--ink);
   }
-  .brand-sub{font-size:12px; color:var(--paper-dim); font-weight:500;}
+  .brand-sub{font-size:11.5px; color:var(--ink-faint); font-weight:500;}
 
-  .topbar-actions{display:flex; gap:10px; pointer-events:auto;}
+  .topbar-actions{display:flex; gap:8px; pointer-events:auto;}
   .icon-btn{
     width:42px; height:42px; border-radius:50%;
-    background:rgba(20,28,43,0.72); backdrop-filter:blur(10px);
-    border:1px solid var(--line); color:var(--paper);
+    background:var(--card); border:1px solid var(--line);
+    color:var(--ink); box-shadow:var(--shadow-sm);
     display:flex; align-items:center; justify-content:center;
-    cursor:pointer; transition:background .18s ease, transform .18s ease;
+    cursor:pointer; transition:transform .18s ease, box-shadow .18s ease;
   }
-  .icon-btn:hover{background:rgba(42,57,88,0.85); transform:translateY(-1px);}
+  .icon-btn:hover{transform:translateY(-1px); box-shadow:var(--shadow);}
+  .icon-btn.active{background:var(--ocean); border-color:var(--ocean); color:#fff;}
   .icon-btn svg{width:18px; height:18px;}
 
-  /* ---------- side panel ---------- */
+  /* ---------------- primary nav ---------------- */
+  .primary-nav{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:20;
+    display:flex; gap:2px; padding:4px;
+    background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow-sm);
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:7px; padding:9px 14px; border-radius:12px;
+    font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; white-space:nowrap;
+    transition:background .16s ease, color .16s ease;
+  }
+  .nav-item .n-ic{font-size:15px; line-height:1;}
+  .nav-item:hover{background:var(--cream-deep);}
+  .nav-item.active{background:var(--coral); color:#fff;}
+
+  /* ---------------- map settings popover ---------------- */
+  .settings-pop{
+    position:fixed; top:70px; right:24px; z-index:25;
+    width:230px; background:var(--card); border:1px solid var(--line); border-radius:16px;
+    box-shadow:var(--shadow); padding:16px;
+    opacity:0; transform:translateY(-8px) scale(.98); pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+  }
+  .settings-pop.open{opacity:1; transform:translateY(0) scale(1); pointer-events:auto;}
+  .settings-title{font-size:12px; font-weight:700; color:var(--ink-soft); text-transform:none; margin-bottom:10px;}
+  .setting-row{display:flex; align-items:center; justify-content:space-between; padding:8px 0;}
+  .setting-row + .setting-row{border-top:1px solid var(--line);}
+  .setting-label{font-size:13.5px; color:var(--ink); font-weight:500;}
+  .switch{position:relative; width:40px; height:23px; flex:none;}
+  .switch input{opacity:0; width:0; height:0; position:absolute;}
+  .switch-track{position:absolute; inset:0; background:var(--sand); border-radius:14px; cursor:pointer; transition:background .2s ease;}
+  .switch-track::before{content:''; position:absolute; width:17px; height:17px; left:3px; top:3px; border-radius:50%; background:#fff; transition:transform .2s cubic-bezier(.65,0,.35,1); box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .switch input:checked + .switch-track{background:var(--ocean);}
+  .switch input:checked + .switch-track::before{transform:translateX(17px);}
+  .settings-reset{
+    margin-top:12px; width:100%; padding:9px; border-radius:10px; border:1px solid var(--line-strong);
+    background:transparent; color:var(--ink-soft); font-family:var(--sans); font-size:12.5px; font-weight:600;
+    cursor:pointer; transition:background .15s ease;
+  }
+  .settings-reset:hover{background:var(--cream-deep);}
+
+  /* ---------------- side / bottom panel (list + detail) ---------------- */
   .panel{
     position:fixed; top:0; right:0; bottom:0; z-index:15;
-    width:380px; max-width:92vw;
-    background:rgba(14,20,32,0.86); backdrop-filter:blur(18px);
+    width:392px; max-width:92vw;
+    background:var(--cream-deep);
     border-left:1px solid var(--line);
     display:flex; flex-direction:column;
     transform:translateX(0); transition:transform .38s cubic-bezier(.65,0,.35,1);
     box-shadow:var(--shadow);
   }
   .panel.collapsed{transform:translateX(100%);}
-  .panel-head{padding:88px 26px 18px; border-bottom:1px solid var(--line);}
 
-  .progress-row{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:12px;}
-  .progress-count{font-family:var(--serif); font-size:38px; font-weight:600; line-height:1; color:var(--paper);}
-  .progress-count small{font-family:var(--sans); font-size:14px; font-weight:500; color:var(--paper-dim); margin-left:6px;}
-  .progress-pct{font-size:13px; color:var(--gold-bright); font-weight:600;}
-  .progress-track{height:5px; border-radius:3px; background:var(--ink-700); overflow:hidden;}
-  .progress-fill{height:100%; background:linear-gradient(90deg, var(--gold), var(--gold-bright)); border-radius:3px; transition:width .5s cubic-bezier(.65,0,.35,1);}
+  .panel-head{padding:84px 24px 16px; border-bottom:1px solid var(--line); flex:none;}
 
-  .panel-controls{padding:16px 26px; display:flex; flex-direction:column; gap:12px; border-bottom:1px solid var(--line);}
+  .progress-row{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:10px;}
+  .progress-count{font-family:var(--serif); font-size:34px; font-weight:600; line-height:1; color:var(--ink);}
+  .progress-count small{font-family:var(--sans); font-size:13px; font-weight:500; color:var(--ink-soft); margin-left:6px;}
+  .progress-pct{font-size:12.5px; color:var(--coral-deep); font-weight:700;}
+  .progress-track{height:6px; border-radius:3px; background:var(--sand); overflow:hidden;}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--coral), var(--gold)); border-radius:3px; transition:width .5s cubic-bezier(.65,0,.35,1);}
+  .progress-footnote{margin-top:8px; font-size:12px; color:var(--ink-faint);}
 
+  .panel-controls{padding:14px 24px; display:flex; flex-direction:column; gap:10px; border-bottom:1px solid var(--line); flex:none;}
   .search-wrap{position:relative;}
   .search-wrap input{
-    width:100%; padding:11px 14px 11px 38px; border-radius:10px;
-    border:1px solid var(--line); background:var(--ink-800); color:var(--paper);
+    width:100%; padding:10px 14px 10px 36px; border-radius:10px;
+    border:1px solid var(--line-strong); background:var(--card); color:var(--ink);
     font-family:var(--sans); font-size:14px; outline:none; transition:border-color .18s ease;
   }
-  .search-wrap input:focus{border-color:var(--gold);}
-  .search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--paper-dim);}
-
-  .toggle-row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  .toggle-label{font-size:13.5px; color:var(--paper);}
-  .toggle-label span{display:block; font-size:11.5px; color:var(--paper-dim); margin-top:2px;}
-  .switch{position:relative; width:44px; height:25px; flex:none;}
-  .switch input{opacity:0; width:0; height:0; position:absolute;}
-  .switch-track{
-    position:absolute; inset:0; background:var(--ink-600); border-radius:14px; cursor:pointer; transition:background .2s ease;
-  }
-  .switch-track::before{
-    content:''; position:absolute; width:19px; height:19px; left:3px; top:3px; border-radius:50%;
-    background:var(--paper); transition:transform .22s cubic-bezier(.65,0,.35,1);
-  }
-  .switch input:checked + .switch-track{background:var(--gold);}
-  .switch input:checked + .switch-track::before{transform:translateX(19px);}
+  .search-wrap input:focus{border-color:var(--ocean);}
+  .search-wrap svg{position:absolute; left:11px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--ink-faint);}
 
   .filter-chips{display:flex; gap:6px; flex-wrap:wrap;}
   .chip{
-    padding:6px 12px; border-radius:20px; font-size:12px; font-weight:500;
-    background:var(--ink-800); border:1px solid var(--line); color:var(--paper-dim);
-    cursor:pointer; transition:all .15s ease;
+    padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600;
+    background:var(--card); border:1px solid var(--line-strong); color:var(--ink-soft);
+    cursor:pointer; transition:all .15s ease; display:flex; align-items:center; gap:5px;
   }
-  .chip.active{background:var(--gold); border-color:var(--gold); color:var(--ink-950);}
+  .chip .dot{width:7px; height:7px; border-radius:50%;}
+  .chip.active{background:var(--ink); border-color:var(--ink); color:#fff;}
 
-  .country-list{flex:1; overflow-y:auto; padding:6px 14px 18px;}
-  .country-list::-webkit-scrollbar{width:6px;}
-  .country-list::-webkit-scrollbar-thumb{background:var(--ink-600); border-radius:3px;}
+  .panel-body{flex:1; overflow-y:auto; position:relative;}
+  .panel-body::-webkit-scrollbar{width:6px;}
+  .panel-body::-webkit-scrollbar-thumb{background:var(--sand); border-radius:3px;}
 
-  .continent-heading{
-    font-size:11px; letter-spacing:.06em; color:var(--paper-dim); font-weight:600;
-    padding:16px 12px 6px;
-  }
+  .country-list{padding:6px 12px 18px;}
+  .continent-heading{font-size:11px; letter-spacing:.04em; color:var(--ink-faint); font-weight:700; padding:16px 12px 6px;}
 
   .country-row{
-    display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px;
+    display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:12px;
     cursor:pointer; transition:background .15s ease;
   }
-  .country-row:hover{background:var(--ink-800);}
-  .country-row.visited .c-name{color:var(--gold-bright);}
-  .checkbox{
-    width:19px; height:19px; border-radius:6px; border:1.5px solid var(--ink-600); flex:none;
-    display:flex; align-items:center; justify-content:center; transition:all .15s ease;
+  .country-row:hover{background:var(--card);}
+  .status-dot{width:10px; height:10px; border-radius:50%; flex:none; background:var(--sand); border:1.5px solid var(--line-strong);}
+  .country-row[data-status="visited"] .status-dot{background:var(--coral); border-color:var(--coral);}
+  .country-row[data-status="bucketlist"] .status-dot{background:var(--gold); border-color:var(--gold);}
+  .c-flag{font-size:16px; line-height:1; flex:none;}
+  .c-name{font-size:14px; color:var(--ink); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;}
+  .country-row[data-status="visited"] .c-name{color:var(--coral-deep); font-weight:600;}
+  .country-row[data-status="bucketlist"] .c-name{color:var(--gold-deep); font-weight:600;}
+  .c-cap{font-size:11.5px; color:var(--ink-faint); flex:none;}
+
+  .empty-hint{padding:30px 20px; text-align:center; color:var(--ink-faint); font-size:13px; line-height:1.6;}
+
+  /* ---------------- land detail view (inside panel) ---------------- */
+  .detail-view{display:none; padding:0 24px 24px;}
+  .detail-view.active{display:block;}
+  .panel-body.detail-mode .country-list{display:none;}
+
+  .detail-back{
+    display:flex; align-items:center; gap:6px; padding:14px 0 4px; color:var(--ink-soft);
+    font-size:12.5px; font-weight:600; cursor:pointer; width:fit-content;
   }
-  .country-row.visited .checkbox{background:var(--gold); border-color:var(--gold);}
-  .checkbox svg{width:12px; height:12px; opacity:0; transform:scale(.6); transition:all .12s ease; color:var(--ink-950);}
-  .country-row.visited .checkbox svg{opacity:1; transform:scale(1);}
-  .c-name{font-size:14px; color:var(--paper); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .c-cap{font-size:11.5px; color:var(--paper-dim); flex:none;}
+  .detail-back svg{width:14px; height:14px;}
+  .detail-back:hover{color:var(--ink);}
 
-  .empty-hint{padding:30px 14px; text-align:center; color:var(--paper-dim); font-size:13px;}
+  .detail-header{display:flex; align-items:center; gap:12px; padding:10px 0 16px;}
+  .detail-flag{font-size:38px; line-height:1;}
+  .detail-name{font-family:var(--serif); font-size:24px; font-weight:600; color:var(--ink); line-height:1.1;}
+  .detail-capital{font-size:12.5px; color:var(--ink-soft); margin-top:3px;}
 
-  /* ---------- bottom-left legend / info ---------- */
+  .status-segment{display:flex; gap:6px; margin-bottom:18px;}
+  .status-btn{
+    flex:1; padding:10px 6px; border-radius:12px; border:1.5px solid var(--line-strong);
+    background:var(--card); color:var(--ink-soft); font-family:var(--sans); font-size:12px; font-weight:600;
+    cursor:pointer; transition:all .16s ease; display:flex; flex-direction:column; align-items:center; gap:4px;
+  }
+  .status-btn .s-ic{font-size:16px;}
+  .status-btn:hover{border-color:var(--ink-faint);}
+  .status-btn[data-state="visited"].is-active{background:var(--coral); border-color:var(--coral); color:#fff;}
+  .status-btn[data-state="bucketlist"].is-active{background:var(--gold); border-color:var(--gold); color:#fff;}
+  .status-btn[data-state="unvisited"].is-active{background:var(--ink); border-color:var(--ink); color:#fff;}
+
+  .detail-message{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px;
+    font-size:13.5px; color:var(--ink); line-height:1.55; margin-bottom:18px;
+  }
+  .detail-message b{font-family:var(--serif); font-weight:600;}
+
+  .cities-section-title{font-size:12px; font-weight:700; color:var(--ink-soft); margin:0 0 8px; display:flex; justify-content:space-between; align-items:baseline;}
+  .cities-section-title span{font-weight:500; color:var(--ink-faint);}
+  .city-row{
+    display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:10px; cursor:pointer;
+    transition:background .15s ease;
+  }
+  .city-row:hover{background:var(--card);}
+  .city-check{
+    width:20px; height:20px; border-radius:7px; border:1.5px solid var(--line-strong); flex:none;
+    display:flex; align-items:center; justify-content:center; background:var(--card); transition:all .15s ease;
+  }
+  .city-row.checked .city-check{background:var(--coral); border-color:var(--coral);}
+  .city-check svg{width:12px; height:12px; opacity:0; transform:scale(.6); transition:all .12s ease; color:#fff;}
+  .city-row.checked .city-check svg{opacity:1; transform:scale(1);}
+  .city-name{font-size:13.5px; color:var(--ink); flex:1;}
+  .city-tag{font-size:10.5px; font-weight:700; color:var(--gold-deep); background:rgba(227,172,61,0.16); padding:2px 7px; border-radius:8px;}
+
+  /* ---------------- overlay views (bucketlist / trips / album placeholders) ---------------- */
+  .view-overlay{
+    position:fixed; inset:0; z-index:12; background:rgba(251,247,238,0.92); backdrop-filter:blur(6px);
+    display:none; overflow-y:auto; padding:100px 24px 40px;
+  }
+  .view-overlay.active{display:block;}
+  .view-inner{max-width:720px; margin:0 auto;}
+  .view-title{font-family:var(--serif); font-size:30px; font-weight:600; color:var(--ink); margin-bottom:6px;}
+  .view-subtitle{font-size:14px; color:var(--ink-soft); margin-bottom:32px;}
+
+  .placeholder-card{
+    background:var(--card); border:1px solid var(--line); border-radius:20px; padding:48px 32px;
+    text-align:center; box-shadow:var(--shadow-sm);
+  }
+  .placeholder-emoji{font-size:40px; margin-bottom:14px;}
+  .placeholder-text{font-family:var(--serif); font-size:18px; color:var(--ink); margin-bottom:6px;}
+  .placeholder-sub{font-size:13px; color:var(--ink-soft); max-width:360px; margin:0 auto;}
+
+  .bucket-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px;}
+  .bucket-card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px;
+    box-shadow:var(--shadow-sm); cursor:pointer; transition:transform .16s ease, box-shadow .16s ease;
+  }
+  .bucket-card:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
+  .bucket-flag{font-size:30px; margin-bottom:8px;}
+  .bucket-name{font-family:var(--serif); font-size:17px; font-weight:600; color:var(--ink);}
+  .bucket-cap{font-size:12px; color:var(--ink-soft); margin-top:2px; margin-bottom:12px;}
+  .bucket-actions{display:flex; gap:6px;}
+  .bucket-actions button{
+    flex:1; padding:7px; border-radius:8px; border:1px solid var(--line-strong); background:transparent;
+    font-size:11px; font-weight:600; color:var(--ink-soft); cursor:pointer; font-family:var(--sans);
+  }
+  .bucket-actions button.primary{background:var(--coral); border-color:var(--coral); color:#fff;}
+  .bucket-actions button:hover{background:var(--cream-deep);}
+  .bucket-actions button.primary:hover{background:var(--coral-deep);}
+
+  /* ---------------- legend ---------------- */
   .legend{
-    position:fixed; left:28px; bottom:26px; z-index:15;
-    display:flex; flex-direction:column; gap:8px;
-    font-size:12px; color:var(--paper-dim); pointer-events:none;
+    position:fixed; left:24px; bottom:22px; z-index:15;
+    display:flex; flex-direction:column; gap:7px;
+    font-size:12px; color:var(--ink-soft); pointer-events:none;
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; box-shadow:var(--shadow-sm);
   }
   .legend-item{display:flex; align-items:center; gap:8px;}
   .legend-dot{width:9px; height:9px; border-radius:50%; flex:none;}
 
   .hint-pill{
-    position:fixed; left:28px; top:50%; transform:translateY(-50%); z-index:15;
-    background:rgba(20,28,43,0.6); backdrop-filter:blur(10px);
-    border:1px solid var(--line); border-radius:14px; padding:14px 16px;
-    max-width:220px; font-size:12.5px; line-height:1.5; color:var(--paper-dim);
+    position:fixed; left:24px; top:50%; transform:translateY(-50%); z-index:15;
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px;
+    max-width:210px; font-size:12.5px; line-height:1.5; color:var(--ink-soft); box-shadow:var(--shadow-sm);
     transition:opacity .4s ease;
   }
-  .hint-pill b{color:var(--paper); font-weight:600;}
+  .hint-pill b{color:var(--ink); font-weight:600;}
 
-  /* ---------- toast on click ---------- */
+  /* ---------------- toast ---------------- */
   .toast{
-    position:fixed; left:50%; bottom:34px; transform:translateX(-50%) translateY(20px);
-    z-index:30; background:rgba(20,28,43,0.92); backdrop-filter:blur(14px);
-    border:1px solid var(--line); border-radius:14px; padding:14px 20px;
-    display:flex; align-items:center; gap:14px; box-shadow:var(--shadow);
+    position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(20px);
+    z-index:30; background:var(--ink); color:var(--cream); border-radius:16px; padding:13px 20px;
+    display:flex; align-items:center; gap:12px; box-shadow:var(--shadow);
     opacity:0; pointer-events:none; transition:opacity .28s ease, transform .28s ease;
+    max-width:88vw;
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
-  .toast-name{font-family:var(--serif); font-size:17px; font-weight:600;}
-  .toast-cap{font-size:12px; color:var(--paper-dim);}
-  .toast-status{font-size:12px; font-weight:600; padding:5px 11px; border-radius:20px; white-space:nowrap;}
-  .toast-status.on{background:rgba(212,162,76,0.18); color:var(--gold-bright);}
-  .toast-status.off{background:rgba(255,255,255,0.06); color:var(--paper-dim);}
+  .toast-emoji{font-size:20px;}
+  .toast-name{font-family:var(--serif); font-size:15px; font-weight:600;}
+  .toast-cap{font-size:11.5px; color:rgba(251,247,238,0.65);}
 
-  /* ---------- loading ---------- */
+  /* ---------------- loading ---------------- */
   #loading{
-    position:fixed; inset:0; z-index:50; background:var(--ink-950);
+    position:fixed; inset:0; z-index:50; background:var(--cream);
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
     transition:opacity .5s ease, visibility .5s ease;
   }
   #loading.hidden{opacity:0; visibility:hidden; pointer-events:none;}
-  .load-title{font-family:var(--serif); font-size:24px; color:var(--paper); letter-spacing:.5px;}
-  .load-bar{width:180px; height:2px; background:var(--ink-700); border-radius:2px; overflow:hidden;}
-  .load-bar::after{
-    content:''; display:block; width:40%; height:100%; background:var(--gold);
-    animation:loadsweep 1.1s ease-in-out infinite;
-  }
-  @keyframes loadsweep{
-    0%{transform:translateX(-100%);} 100%{transform:translateX(350%);}
-  }
+  .load-title{font-family:var(--serif); font-size:22px; color:var(--ink); letter-spacing:.2px;}
+  .load-emoji{font-size:32px;}
+  .load-bar{width:170px; height:3px; background:var(--sand); border-radius:2px; overflow:hidden;}
+  .load-bar::after{content:''; display:block; width:40%; height:100%; background:var(--coral); animation:loadsweep 1.1s ease-in-out infinite;}
+  @keyframes loadsweep{0%{transform:translateX(-100%);} 100%{transform:translateX(350%);}}
 
-  /* ---------- mobile ---------- */
+  /* ---------------- mobile ---------------- */
   .panel-toggle-mobile{display:none;}
+  .bottom-nav{display:none;}
   @media (max-width: 760px){
-    .topbar{padding:18px 16px;}
-    .brand-mark{font-size:18px;}
+    .topbar{padding:16px;}
+    .brand-mark{font-size:17px;}
     .hint-pill{display:none;}
-    .legend{left:16px; bottom:16px;}
+    .legend{left:14px; bottom:88px; padding:9px 12px;}
+    .primary-nav{display:none;}
+    .settings-pop{right:14px; top:66px;}
+
+    .bottom-nav{
+      display:flex; position:fixed; left:0; right:0; bottom:0; z-index:22;
+      background:var(--card); border-top:1px solid var(--line); padding:8px 6px calc(env(safe-area-inset-bottom,0px) + 6px);
+      justify-content:space-around;
+    }
+    .bn-item{display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 10px; border-radius:12px; color:var(--ink-faint); font-size:10.5px; font-weight:600;}
+    .bn-item .n-ic{font-size:19px;}
+    .bn-item.active{color:var(--coral-deep);}
+
     .panel{
-      width:100%; max-width:100%; top:auto; height:72vh; bottom:0; left:0; right:0;
+      width:100%; max-width:100%; top:auto; height:76vh; bottom:64px; left:0; right:0;
       border-left:none; border-top:1px solid var(--line);
       border-radius:22px 22px 0 0;
-      transform:translateY(calc(100% - 118px));
+      transform:translateY(calc(100% - 100px));
       transition:transform .4s cubic-bezier(.65,0,.35,1);
     }
     .panel.expanded{transform:translateY(0);}
-    .panel.collapsed{transform:translateY(calc(100% - 118px));}
-    .panel-head{padding:22px 22px 14px;}
-    .drag-handle{width:38px; height:4px; border-radius:3px; background:var(--ink-600); margin:0 auto 14px;}
+    .panel.collapsed{transform:translateY(calc(100% - 100px));}
+    .panel-head{padding:20px 20px 12px;}
+    .drag-handle{width:38px; height:4px; border-radius:3px; background:var(--sand); margin:0 auto 12px;}
     .panel-toggle-mobile{
-      display:flex; align-items:center; justify-content:center; gap:6px;
+      display:flex; align-items:center; justify-content:center;
       position:absolute; top:-14px; left:50%; transform:translateX(-50%);
-      width:64px; height:28px; border-radius:14px; background:var(--ink-800);
+      width:64px; height:28px; border-radius:14px; background:var(--card);
       border:1px solid var(--line); cursor:pointer;
     }
+    .view-overlay{padding:88px 16px 96px;}
   }
 </style>
 </head>
 <body>
 
 <div id="loading">
-  <div class="load-title">De wereldbol laden</div>
+  <div class="load-emoji">✈️</div>
+  <div class="load-title">Je wereldkaart wordt geladen</div>
   <div class="load-bar"></div>
 </div>
 
@@ -229,35 +357,69 @@
 
 <div class="topbar">
   <div class="brand">
-    <span class="brand-mark">Reisjournaal</span>
-    <span class="brand-sub">bezochte landen</span>
+    <span class="brand-mark">Mijn Reisalbum</span>
   </div>
   <div class="topbar-actions">
-    <button class="icon-btn" id="resetViewBtn" title="Reset weergave" aria-label="Reset weergave">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+    <button class="icon-btn" id="settingsBtn" title="Kaartweergave" aria-label="Kaartweergave">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
-    <button class="icon-btn" id="panelToggleBtn" title="Landenlijst" aria-label="Landenlijst">
+    <button class="icon-btn" id="panelToggleBtn" title="Mijn landen" aria-label="Mijn landen">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
   </div>
 </div>
 
-<div class="hint-pill" id="hintPill">Sleep om te draaien, scroll om te zoomen. <b>Klik op een land</b> om het als bezocht te markeren.</div>
+<nav class="primary-nav" id="primaryNav">
+  <div class="nav-item active" data-view="map"><span class="n-ic">🌍</span>Wereldkaart</div>
+  <div class="nav-item" data-view="trips"><span class="n-ic">📖</span>Mijn reizen</div>
+  <div class="nav-item" data-view="bucketlist"><span class="n-ic">⭐</span>Bucketlist</div>
+  <div class="nav-item" data-view="album"><span class="n-ic">📸</span>Fotoalbum</div>
+</nav>
+
+<nav class="bottom-nav" id="bottomNav">
+  <div class="bn-item active" data-view="map"><span class="n-ic">🌍</span>Kaart</div>
+  <div class="bn-item" data-view="trips"><span class="n-ic">📖</span>Reizen</div>
+  <div class="bn-item" data-view="bucketlist"><span class="n-ic">⭐</span>Bucketlist</div>
+  <div class="bn-item" data-view="album"><span class="n-ic">📸</span>Album</div>
+</nav>
+
+<div class="settings-pop" id="settingsPop">
+  <div class="settings-title">Kaartweergave</div>
+  <div class="setting-row">
+    <span class="setting-label">📍 Steden</span>
+    <label class="switch">
+      <input type="checkbox" id="citiesToggle" checked>
+      <span class="switch-track"></span>
+    </label>
+  </div>
+  <div class="setting-row">
+    <span class="setting-label">🔄 Auto-rotatie</span>
+    <label class="switch">
+      <input type="checkbox" id="rotateToggle" checked>
+      <span class="switch-track"></span>
+    </label>
+  </div>
+  <button class="settings-reset" id="resetViewBtn">Reset weergave</button>
+</div>
+
+<div class="hint-pill" id="hintPill">Sleep om te draaien, scroll om te zoomen. <b>Klik op een land</b> om het te openen.</div>
 
 <div class="legend">
-  <div class="legend-item"><span class="legend-dot" style="background:var(--gold);"></span>Bezocht</div>
-  <div class="legend-item"><span class="legend-dot" style="background:var(--ink-600);"></span>Nog niet bezocht</div>
-  <div class="legend-item"><span class="legend-dot" style="background:var(--gold-bright); box-shadow:0 0 6px var(--gold-bright);"></span>Hoofdstad</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--coral);"></span>Bezocht</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--gold);"></span>Bucketlist</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--sand);"></span>Nog niet bezocht</div>
 </div>
 
 <div class="panel collapsed" id="panel">
   <div class="panel-toggle-mobile" id="panelHandle"><div class="drag-handle"></div></div>
+
   <div class="panel-head">
     <div class="progress-row">
       <div class="progress-count" id="progressCount">0<small>/ 0 landen</small></div>
       <div class="progress-pct" id="progressPct">0%</div>
     </div>
     <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-footnote" id="progressFootnote">Nog geen landen ontdekt</div>
   </div>
 
   <div class="panel-controls">
@@ -265,31 +427,83 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       <input type="text" id="searchInput" placeholder="Zoek een land…" autocomplete="off">
     </div>
-    <div class="toggle-row">
-      <span class="toggle-label">Hoofdsteden &amp; grote steden<span>Toon stadmarkers op de bol</span></span>
-      <label class="switch">
-        <input type="checkbox" id="citiesToggle" checked>
-        <span class="switch-track"></span>
-      </label>
-    </div>
     <div class="filter-chips">
       <div class="chip active" data-filter="all">Alle</div>
-      <div class="chip" data-filter="visited">Bezocht</div>
-      <div class="chip" data-filter="unvisited">Nog niet</div>
+      <div class="chip" data-filter="visited"><span class="dot" style="background:var(--coral);"></span>Bezocht</div>
+      <div class="chip" data-filter="bucketlist"><span class="dot" style="background:var(--gold);"></span>Bucketlist</div>
+      <div class="chip" data-filter="unvisited"><span class="dot" style="background:var(--sand);"></span>Nog niet</div>
     </div>
   </div>
 
-  <div class="country-list" id="countryList">
-    <div class="empty-hint">Bezig met laden…</div>
+  <div class="panel-body" id="panelBody">
+    <div class="country-list" id="countryList">
+      <div class="empty-hint">Bezig met laden…</div>
+    </div>
+
+    <div class="detail-view" id="detailView">
+      <div class="detail-back" id="detailBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Terug naar lijst
+      </div>
+      <div class="detail-header">
+        <div class="detail-flag" id="detailFlag">🌍</div>
+        <div>
+          <div class="detail-name" id="detailName">—</div>
+          <div class="detail-capital" id="detailCapital"></div>
+        </div>
+      </div>
+
+      <div class="status-segment">
+        <button class="status-btn" data-state="visited"><span class="s-ic">✓</span>Bezocht</button>
+        <button class="status-btn" data-state="bucketlist"><span class="s-ic">⭐</span>Bucketlist</button>
+        <button class="status-btn" data-state="unvisited"><span class="s-ic">○</span>Nog niet</button>
+      </div>
+
+      <div class="detail-message" id="detailMessage"></div>
+
+      <div id="detailCitiesSection"></div>
+    </div>
+  </div>
+</div>
+
+<div class="view-overlay" id="viewTrips">
+  <div class="view-inner">
+    <div class="view-title">Mijn reizen</div>
+    <div class="view-subtitle">Al je avonturen, netjes gebundeld.</div>
+    <div class="placeholder-card">
+      <div class="placeholder-emoji">🧳</div>
+      <div class="placeholder-text">Hier komen straks je reizen te staan</div>
+      <div class="placeholder-sub">Voeg reizen toe met data, steden en foto's — deze functie volgt in een volgende update.</div>
+    </div>
+  </div>
+</div>
+
+<div class="view-overlay" id="viewBucketlist">
+  <div class="view-inner">
+    <div class="view-title">Bucketlist</div>
+    <div class="view-subtitle">De landen waar je nog van droomt.</div>
+    <div id="bucketlistContent"></div>
+  </div>
+</div>
+
+<div class="view-overlay" id="viewAlbum">
+  <div class="view-inner">
+    <div class="view-title">Fotoalbum</div>
+    <div class="view-subtitle">Al je herinneringen op één plek.</div>
+    <div class="placeholder-card">
+      <div class="placeholder-emoji">📸</div>
+      <div class="placeholder-text">Je hebt hier nog geen foto's toegevoegd</div>
+      <div class="placeholder-sub">Zodra je reizen en foto's kunt toevoegen, verschijnen ze hier als een mooi overzicht.</div>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast">
+  <div class="toast-emoji" id="toastEmoji">✈️</div>
   <div>
     <div class="toast-name" id="toastName"></div>
     <div class="toast-cap" id="toastCap"></div>
   </div>
-  <div class="toast-status" id="toastStatus"></div>
 </div>
 
 <script src="./bundle.js"></script>
