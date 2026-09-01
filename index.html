@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Wereldkaart · Reisjournaal</title>
+<meta name="description" content="Interactieve 3D wereldkaart om bezochte landen bij te houden.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+    "three-globe": "https://unpkg.com/three-globe@2.31.1/dist/three-globe.mjs"
+  }
+}
+</script>
+
+<style>
+  :root{
+    --ink-950:#0a0e17;
+    --ink-900:#0e1420;
+    --ink-800:#141c2b;
+    --ink-700:#1c2740;
+    --ink-600:#2a3958;
+    --paper:#eee7d8;
+    --paper-dim:#a9a292;
+    --gold:#d4a24c;
+    --gold-bright:#f0bc63;
+    --coral:#e8785a;
+    --line:rgba(238,231,216,0.12);
+    --shadow:0 12px 40px rgba(0,0,0,0.45);
+    --serif:'Fraunces', Georgia, serif;
+    --sans:'Inter', system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; height:100%; overflow:hidden; background:var(--ink-950); font-family:var(--sans); color:var(--paper);}
+
+  #globe-container{position:fixed; inset:0; z-index:1; cursor:grab;}
+  #globe-container.grabbing{cursor:grabbing;}
+  #globe-container canvas{display:block;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:fixed; top:0; left:0; right:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 28px;
+    pointer-events:none;
+  }
+  .brand{display:flex; align-items:baseline; gap:10px; pointer-events:auto;}
+  .brand-mark{
+    font-family:var(--serif); font-weight:600; font-size:22px; letter-spacing:0.2px;
+    color:var(--paper);
+  }
+  .brand-sub{font-size:12px; color:var(--paper-dim); font-weight:500;}
+
+  .topbar-actions{display:flex; gap:10px; pointer-events:auto;}
+  .icon-btn{
+    width:42px; height:42px; border-radius:50%;
+    background:rgba(20,28,43,0.72); backdrop-filter:blur(10px);
+    border:1px solid var(--line); color:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:background .18s ease, transform .18s ease;
+  }
+  .icon-btn:hover{background:rgba(42,57,88,0.85); transform:translateY(-1px);}
+  .icon-btn svg{width:18px; height:18px;}
+
+  /* ---------- side panel ---------- */
+  .panel{
+    position:fixed; top:0; right:0; bottom:0; z-index:15;
+    width:380px; max-width:92vw;
+    background:rgba(14,20,32,0.86); backdrop-filter:blur(18px);
+    border-left:1px solid var(--line);
+    display:flex; flex-direction:column;
+    transform:translateX(0); transition:transform .38s cubic-bezier(.65,0,.35,1);
+    box-shadow:var(--shadow);
+  }
+  .panel.collapsed{transform:translateX(100%);}
+  .panel-head{padding:88px 26px 18px; border-bottom:1px solid var(--line);}
+
+  .progress-row{display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:12px;}
+  .progress-count{font-family:var(--serif); font-size:38px; font-weight:600; line-height:1; color:var(--paper);}
+  .progress-count small{font-family:var(--sans); font-size:14px; font-weight:500; color:var(--paper-dim); margin-left:6px;}
+  .progress-pct{font-size:13px; color:var(--gold-bright); font-weight:600;}
+  .progress-track{height:5px; border-radius:3px; background:var(--ink-700); overflow:hidden;}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--gold), var(--gold-bright)); border-radius:3px; transition:width .5s cubic-bezier(.65,0,.35,1);}
+
+  .panel-controls{padding:16px 26px; display:flex; flex-direction:column; gap:12px; border-bottom:1px solid var(--line);}
+
+  .search-wrap{position:relative;}
+  .search-wrap input{
+    width:100%; padding:11px 14px 11px 38px; border-radius:10px;
+    border:1px solid var(--line); background:var(--ink-800); color:var(--paper);
+    font-family:var(--sans); font-size:14px; outline:none; transition:border-color .18s ease;
+  }
+  .search-wrap input:focus{border-color:var(--gold);}
+  .search-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--paper-dim);}
+
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .toggle-label{font-size:13.5px; color:var(--paper);}
+  .toggle-label span{display:block; font-size:11.5px; color:var(--paper-dim); margin-top:2px;}
+  .switch{position:relative; width:44px; height:25px; flex:none;}
+  .switch input{opacity:0; width:0; height:0; position:absolute;}
+  .switch-track{
+    position:absolute; inset:0; background:var(--ink-600); border-radius:14px; cursor:pointer; transition:background .2s ease;
+  }
+  .switch-track::before{
+    content:''; position:absolute; width:19px; height:19px; left:3px; top:3px; border-radius:50%;
+    background:var(--paper); transition:transform .22s cubic-bezier(.65,0,.35,1);
+  }
+  .switch input:checked + .switch-track{background:var(--gold);}
+  .switch input:checked + .switch-track::before{transform:translateX(19px);}
+
+  .filter-chips{display:flex; gap:6px; flex-wrap:wrap;}
+  .chip{
+    padding:6px 12px; border-radius:20px; font-size:12px; font-weight:500;
+    background:var(--ink-800); border:1px solid var(--line); color:var(--paper-dim);
+    cursor:pointer; transition:all .15s ease;
+  }
+  .chip.active{background:var(--gold); border-color:var(--gold); color:var(--ink-950);}
+
+  .country-list{flex:1; overflow-y:auto; padding:6px 14px 18px;}
+  .country-list::-webkit-scrollbar{width:6px;}
+  .country-list::-webkit-scrollbar-thumb{background:var(--ink-600); border-radius:3px;}
+
+  .continent-heading{
+    font-size:11px; letter-spacing:.06em; color:var(--paper-dim); font-weight:600;
+    padding:16px 12px 6px;
+  }
+
+  .country-row{
+    display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px;
+    cursor:pointer; transition:background .15s ease;
+  }
+  .country-row:hover{background:var(--ink-800);}
+  .country-row.visited .c-name{color:var(--gold-bright);}
+  .checkbox{
+    width:19px; height:19px; border-radius:6px; border:1.5px solid var(--ink-600); flex:none;
+    display:flex; align-items:center; justify-content:center; transition:all .15s ease;
+  }
+  .country-row.visited .checkbox{background:var(--gold); border-color:var(--gold);}
+  .checkbox svg{width:12px; height:12px; opacity:0; transform:scale(.6); transition:all .12s ease; color:var(--ink-950);}
+  .country-row.visited .checkbox svg{opacity:1; transform:scale(1);}
+  .c-name{font-size:14px; color:var(--paper); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .c-cap{font-size:11.5px; color:var(--paper-dim); flex:none;}
+
+  .empty-hint{padding:30px 14px; text-align:center; color:var(--paper-dim); font-size:13px;}
+
+  /* ---------- bottom-left legend / info ---------- */
+  .legend{
+    position:fixed; left:28px; bottom:26px; z-index:15;
+    display:flex; flex-direction:column; gap:8px;
+    font-size:12px; color:var(--paper-dim); pointer-events:none;
+  }
+  .legend-item{display:flex; align-items:center; gap:8px;}
+  .legend-dot{width:9px; height:9px; border-radius:50%; flex:none;}
+
+  .hint-pill{
+    position:fixed; left:28px; top:50%; transform:translateY(-50%); z-index:15;
+    background:rgba(20,28,43,0.6); backdrop-filter:blur(10px);
+    border:1px solid var(--line); border-radius:14px; padding:14px 16px;
+    max-width:220px; font-size:12.5px; line-height:1.5; color:var(--paper-dim);
+    transition:opacity .4s ease;
+  }
+  .hint-pill b{color:var(--paper); font-weight:600;}
+
+  /* ---------- toast on click ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:34px; transform:translateX(-50%) translateY(20px);
+    z-index:30; background:rgba(20,28,43,0.92); backdrop-filter:blur(14px);
+    border:1px solid var(--line); border-radius:14px; padding:14px 20px;
+    display:flex; align-items:center; gap:14px; box-shadow:var(--shadow);
+    opacity:0; pointer-events:none; transition:opacity .28s ease, transform .28s ease;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast-name{font-family:var(--serif); font-size:17px; font-weight:600;}
+  .toast-cap{font-size:12px; color:var(--paper-dim);}
+  .toast-status{font-size:12px; font-weight:600; padding:5px 11px; border-radius:20px; white-space:nowrap;}
+  .toast-status.on{background:rgba(212,162,76,0.18); color:var(--gold-bright);}
+  .toast-status.off{background:rgba(255,255,255,0.06); color:var(--paper-dim);}
+
+  /* ---------- loading ---------- */
+  #loading{
+    position:fixed; inset:0; z-index:50; background:var(--ink-950);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    transition:opacity .5s ease, visibility .5s ease;
+  }
+  #loading.hidden{opacity:0; visibility:hidden; pointer-events:none;}
+  .load-title{font-family:var(--serif); font-size:24px; color:var(--paper); letter-spacing:.5px;}
+  .load-bar{width:180px; height:2px; background:var(--ink-700); border-radius:2px; overflow:hidden;}
+  .load-bar::after{
+    content:''; display:block; width:40%; height:100%; background:var(--gold);
+    animation:loadsweep 1.1s ease-in-out infinite;
+  }
+  @keyframes loadsweep{
+    0%{transform:translateX(-100%);} 100%{transform:translateX(350%);}
+  }
+
+  /* ---------- mobile ---------- */
+  .panel-toggle-mobile{display:none;}
+  @media (max-width: 760px){
+    .topbar{padding:18px 16px;}
+    .brand-mark{font-size:18px;}
+    .hint-pill{display:none;}
+    .legend{left:16px; bottom:16px;}
+    .panel{
+      width:100%; max-width:100%; top:auto; height:72vh; bottom:0; left:0; right:0;
+      border-left:none; border-top:1px solid var(--line);
+      border-radius:22px 22px 0 0;
+      transform:translateY(calc(100% - 118px));
+      transition:transform .4s cubic-bezier(.65,0,.35,1);
+    }
+    .panel.expanded{transform:translateY(0);}
+    .panel.collapsed{transform:translateY(calc(100% - 118px));}
+    .panel-head{padding:22px 22px 14px;}
+    .drag-handle{width:38px; height:4px; border-radius:3px; background:var(--ink-600); margin:0 auto 14px;}
+    .panel-toggle-mobile{
+      display:flex; align-items:center; justify-content:center; gap:6px;
+      position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+      width:64px; height:28px; border-radius:14px; background:var(--ink-800);
+      border:1px solid var(--line); cursor:pointer;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="load-title">De wereldbol laden</div>
+  <div class="load-bar"></div>
+</div>
+
+<div id="globe-container"></div>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="brand-mark">Reisjournaal</span>
+    <span class="brand-sub">bezochte landen</span>
+  </div>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="resetViewBtn" title="Reset weergave" aria-label="Reset weergave">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+    </button>
+    <button class="icon-btn" id="panelToggleBtn" title="Landenlijst" aria-label="Landenlijst">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="hint-pill" id="hintPill">Sleep om te draaien, scroll om te zoomen. <b>Klik op een land</b> om het als bezocht te markeren.</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:var(--gold);"></span>Bezocht</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--ink-600);"></span>Nog niet bezocht</div>
+  <div class="legend-item"><span class="legend-dot" style="background:var(--gold-bright); box-shadow:0 0 6px var(--gold-bright);"></span>Hoofdstad</div>
+</div>
+
+<div class="panel collapsed" id="panel">
+  <div class="panel-toggle-mobile" id="panelHandle"><div class="drag-handle"></div></div>
+  <div class="panel-head">
+    <div class="progress-row">
+      <div class="progress-count" id="progressCount">0<small>/ 0 landen</small></div>
+      <div class="progress-pct" id="progressPct">0%</div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <div class="panel-controls">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Zoek een land…" autocomplete="off">
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Hoofdsteden &amp; grote steden<span>Toon stadmarkers op de bol</span></span>
+      <label class="switch">
+        <input type="checkbox" id="citiesToggle" checked>
+        <span class="switch-track"></span>
+      </label>
+    </div>
+    <div class="filter-chips">
+      <div class="chip active" data-filter="all">Alle</div>
+      <div class="chip" data-filter="visited">Bezocht</div>
+      <div class="chip" data-filter="unvisited">Nog niet</div>
+    </div>
+  </div>
+
+  <div class="country-list" id="countryList">
+    <div class="empty-hint">Bezig met laden…</div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div>
+    <div class="toast-name" id="toastName"></div>
+    <div class="toast-cap" id="toastCap"></div>
+  </div>
+  <div class="toast-status" id="toastStatus"></div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import ThreeGlobe from 'three-globe';
+import { CITIES } from './cities.js';
+
+/* ---------------- storage ---------------- */
+const STORAGE_KEY = 'reisjournaal_bezocht_v1';
+const loadVisited = () => {
+  try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
+  catch(e){ return new Set(); }
+};
+const saveVisited = (set) => localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+let visited = loadVisited();
+
+/* ---------------- name normalising / aliasing ---------------- */
+const norm = (s) => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+
+const ALIASES = {
+  'unitedstatesofamerica':'unitedstates',
+  'unitedrepublicoftanzania':'tanzania',
+  'democraticrepublicofthecongo':'congodrc',
+  'republicofcongo':'congo',
+  'ivorycoast':'coted ivoire'.replace(/[^a-z]/g,''),
+  'coted\'ivoire':'coted ivoire'.replace(/[^a-z]/g,''),
+  'czechia':'czechrepublic',
+  'eswatini':'swaziland',
+  'macedonia':'northmacedonia',
+  'guineabissau':'guineabissau',
+  'thebahamas':'bahamas',
+  'easttimor':'timorleste',
+  'somaliland':'somalia',
+  'westernsahara':'morocco',
+  'burma':'myanmar',
+  'capeverde':'caboverde',
+  'brunei':'bruneidarussalam',
+  'laos':'laopeoplesdemocraticrepublic',
+};
+function resolveKey(name){
+  let k = norm(name);
+  if (ALIASES[k]) k = norm(ALIASES[k]);
+  return k;
+}
+
+const cityByCountry = new Map();
+CITIES.forEach(c => {
+  const k = resolveKey(c.country);
+  if (!cityByCountry.has(k)) cityByCountry.set(k, []);
+  cityByCountry.get(k).push(c);
+});
+function capitalOf(countryName){
+  const list = cityByCountry.get(resolveKey(countryName));
+  if (!list) return null;
+  return list.find(c => c.capital) || null;
+}
+
+/* ---------------- continent grouping (light heuristic) ---------------- */
+const CONTINENT_OF = new Map(CITIES.map(c => [resolveKey(c.country), c.continent]));
+function continentOf(name){ return CONTINENT_OF.get(resolveKey(name)) || 'Overig'; }
+const CONTINENT_ORDER = ['Europa','Azië','Afrika','Noord-Amerika','Zuid-Amerika','Oceanië','Overig'];
+
+/* ---------------- three.js scene ---------------- */
+const container = document.getElementById('globe-container');
+let W = window.innerWidth, H = window.innerHeight;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0e17);
+scene.fog = new THREE.FogExp2(0x0a0e17, 0.00009);
+
+const camera = new THREE.PerspectiveCamera(50, W/H, 0.1, 10000);
+camera.position.set(0, 0, 320);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(W, H);
+container.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff, 1.4));
+const dirLight = new THREE.DirectionalLight(0xfff2d8, 1.1);
+dirLight.position.set(-260, 140, 220);
+scene.add(dirLight);
+const rimLight = new THREE.DirectionalLight(0x4a6fff, 0.35);
+rimLight.position.set(200, -100, -200);
+scene.add(rimLight);
+
+// starfield
+function makeStars(count, spread, size, color, opacity){
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count*3);
+  for (let i=0;i<count;i++){
+    const r = spread * (0.6 + Math.random()*0.4);
+    const theta = Math.random()*Math.PI*2;
+    const phi = Math.acos((Math.random()*2)-1);
+    pos[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+    pos[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+    pos[i*3+2] = r*Math.cos(phi);
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const mat = new THREE.PointsMaterial({ color, size, transparent:true, opacity, sizeAttenuation:true });
+  return new THREE.Points(geo, mat);
+}
+scene.add(makeStars(2200, 2600, 1.1, 0xeee7d8, 0.55));
+scene.add(makeStars(600, 1800, 1.9, 0xf0bc63, 0.35));
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.rotateSpeed = 0.45;
+controls.zoomSpeed = 0.6;
+controls.minDistance = 145;
+controls.maxDistance = 640;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.35;
+controls.enablePan = false;
+
+let userInteracted = false;
+controls.addEventListener('start', () => { userInteracted = true; controls.autoRotate = false; container.classList.add('grabbing'); });
+controls.addEventListener('end', () => { container.classList.remove('grabbing'); });
+
+/* ---------------- globe ---------------- */
+const GOLD = '#d4a24c';
+const GOLD_BRIGHT = '#f0bc63';
+const BASE = 'rgba(60,74,102,0.55)';
+const BASE_LINE = 'rgba(238,231,216,0.28)';
+
+const globe = new ThreeGlobe({ waitForGlobeReady:true, animateIn:true })
+  .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+  .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+  .showAtmosphere(true)
+  .atmosphereColor('#6f8fd4')
+  .atmosphereAltitude(0.16);
+
+scene.add(globe);
+
+let hoveredId = null;
+let countryFeatures = [];
+const idOf = (feat) => feat.properties.NAME || feat.properties.ADMIN || feat.properties.name;
+
+fetch('https://unpkg.com/three-globe/example/datasets/ne_110m_admin_0_countries.geojson')
+  .then(r => r.json())
+  .then(data => {
+    countryFeatures = data.features.filter(f => idOf(f) && idOf(f) !== 'Antarctica');
+    globe
+      .polygonsData(countryFeatures)
+      .polygonCapColor(colorFor)
+      .polygonSideColor(() => 'rgba(10,14,23,0.25)')
+      .polygonStrokeColor(() => BASE_LINE)
+      .polygonAltitude(feat => (idOf(feat) === hoveredId ? 0.045 : 0.008))
+      .polygonsTransitionDuration(350)
+      .onPolygonHover(onHover)
+      .onPolygonClick(onClick)
+      .polygonLabel(feat => {
+        const name = idOf(feat);
+        const cap = capitalOf(name);
+        return `<div style="font-family:${'Inter,sans-serif'};background:rgba(14,20,32,.92);border:1px solid rgba(238,231,216,.15);padding:8px 12px;border-radius:8px;color:#eee7d8;font-size:13px;">
+          <b style="font-family:Fraunces,serif;font-size:14px;">${name}</b>${cap ? `<br><span style="color:#a9a292;font-size:11.5px;">Hoofdstad: ${cap.name}</span>` : ''}
+        </div>`;
+      });
+
+    buildCountryList();
+    updateStats();
+    finishLoading();
+  })
+  .catch(err => {
+    document.querySelector('.load-title').textContent = 'Kon de kaartdata niet laden';
+    document.getElementById('countryList').innerHTML = '<div class="empty-hint">Geen internetverbinding met de kaartbron. Ververs de pagina.</div>';
+    console.error(err);
+  });
+
+function colorFor(feat){
+  const name = idOf(feat);
+  if (name === hoveredId) return GOLD_BRIGHT;
+  return visited.has(resolveKey(name)) ? GOLD : BASE;
+}
+
+function onHover(feat){
+  hoveredId = feat ? idOf(feat) : null;
+  container.style.cursor = feat ? 'pointer' : 'grab';
+  globe.polygonCapColor(colorFor).polygonAltitude(f => (idOf(f) === hoveredId ? 0.045 : 0.008));
+}
+
+function onClick(feat){
+  if (!feat) return;
+  toggleCountry(idOf(feat), true);
+}
+
+/* ---------------- city points ---------------- */
+let citiesVisible = true;
+function refreshPoints(){
+  globe
+    .pointsData(citiesVisible ? CITIES : [])
+    .pointLat('lat')
+    .pointLng('lng')
+    .pointAltitude(0.012)
+    .pointRadius(d => d.capital ? 0.38 : 0.24)
+    .pointColor(d => d.capital ? '#f0bc63' : '#c9b8e0')
+    .pointResolution(6)
+    .pointsMerge(false)
+    .pointLabel(d => `<div style="font-family:Inter,sans-serif;background:rgba(14,20,32,.92);border:1px solid rgba(238,231,216,.15);padding:6px 10px;border-radius:7px;color:#eee7d8;font-size:12.5px;">
+        <b style="font-family:Fraunces,serif;">${d.name}</b><br><span style="color:#a9a292;font-size:11px;">${d.capital ? 'Hoofdstad · ' : ''}${d.country}</span>
+      </div>`);
+}
+refreshPoints();
+
+/* ---------------- visited logic ---------------- */
+function toggleCountry(name, animateFly){
+  const key = resolveKey(name);
+  const nowVisited = !visited.has(key);
+  if (nowVisited) visited.add(key); else visited.delete(key);
+  saveVisited(visited);
+  globe.polygonCapColor(colorFor);
+  updateStats();
+  refreshListRow(name);
+  showToast(name, nowVisited);
+  if (animateFly) flyToCountry(name);
+}
+
+function flyToCountry(name){
+  const feat = countryFeatures.find(f => idOf(f) === name);
+  if (!feat) return;
+  try{
+    const centroid = polygonCentroid(feat);
+    if (centroid) globe.pointOfView({ lat:centroid[1], lng:centroid[0], altitude:1.9 }, 900);
+  }catch(e){}
+}
+function polygonCentroid(feat){
+  let coords = feat.geometry.type === 'Polygon' ? feat.geometry.coordinates : feat.geometry.coordinates.flat();
+  let ring = coords[0];
+  if (feat.geometry.type === 'MultiPolygon'){
+    let biggest = feat.geometry.coordinates[0][0];
+    feat.geometry.coordinates.forEach(poly => { if (poly[0].length > biggest.length) biggest = poly[0]; });
+    ring = biggest;
+  }
+  let x=0,y=0;
+  ring.forEach(([lng,lat]) => { x+=lng; y+=lat; });
+  return [x/ring.length, y/ring.length];
+}
+
+function showToast(name, isVisited){
+  const cap = capitalOf(name);
+  document.getElementById('toastName').textContent = name;
+  document.getElementById('toastCap').textContent = cap ? `Hoofdstad: ${cap.name}` : '';
+  const statusEl = document.getElementById('toastStatus');
+  statusEl.textContent = isVisited ? 'Bezocht ✓' : 'Verwijderd';
+  statusEl.className = 'toast-status ' + (isVisited ? 'on' : 'off');
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+/* ---------------- side panel: country list ---------------- */
+const listEl = document.getElementById('countryList');
+let currentFilter = 'all';
+let currentSearch = '';
+
+function buildCountryList(){
+  const grouped = new Map();
+  countryFeatures
+    .map(f => idOf(f))
+    .sort((a,b) => a.localeCompare(b))
+    .forEach(name => {
+      const cont = continentOf(name);
+      if (!grouped.has(cont)) grouped.set(cont, []);
+      grouped.get(cont).push(name);
+    });
+
+  renderList(grouped);
+}
+
+function renderList(grouped){
+  listEl.innerHTML = '';
+  const order = [...CONTINENT_ORDER, ...[...grouped.keys()].filter(c => !CONTINENT_ORDER.includes(c))];
+  let anyShown = false;
+
+  order.forEach(cont => {
+    const names = grouped.get(cont);
+    if (!names) return;
+    const filtered = names.filter(name => {
+      if (currentSearch && !name.toLowerCase().includes(currentSearch)) return false;
+      const isVis = visited.has(resolveKey(name));
+      if (currentFilter === 'visited' && !isVis) return false;
+      if (currentFilter === 'unvisited' && isVis) return false;
+      return true;
+    });
+    if (!filtered.length) return;
+    anyShown = true;
+
+    const heading = document.createElement('div');
+    heading.className = 'continent-heading';
+    heading.textContent = cont;
+    listEl.appendChild(heading);
+
+    filtered.forEach(name => listEl.appendChild(makeRow(name)));
+  });
+
+  if (!anyShown){
+    const empty = document.createElement('div');
+    empty.className = 'empty-hint';
+    empty.textContent = 'Geen landen gevonden.';
+    listEl.appendChild(empty);
+  }
+}
+
+function makeRow(name){
+  const row = document.createElement('div');
+  row.className = 'country-row' + (visited.has(resolveKey(name)) ? ' visited' : '');
+  row.dataset.name = name;
+  const cap = capitalOf(name);
+  row.innerHTML = `
+    <div class="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="c-name">${name}</div>
+    <div class="c-cap">${cap ? cap.name : ''}</div>
+  `;
+  row.addEventListener('click', () => toggleCountry(name, true));
+  return row;
+}
+
+function refreshListRow(name){
+  const row = listEl.querySelector(`.country-row[data-name="${CSS.escape(name)}"]`);
+  const isVis = visited.has(resolveKey(name));
+  if (row){
+    row.classList.toggle('visited', isVis);
+    if ((currentFilter === 'visited' && !isVis) || (currentFilter === 'unvisited' && isVis)) {
+      buildCountryList();
+    }
+  }
+}
+
+function updateStats(){
+  const total = countryFeatures.length || 195;
+  const count = [...new Set(countryFeatures.map(f => idOf(f)))].filter(n => visited.has(resolveKey(n))).length;
+  document.getElementById('progressCount').innerHTML = `${count}<small>/ ${total} landen</small>`;
+  const pct = total ? Math.round((count/total)*100) : 0;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+/* ---------------- panel controls wiring ---------------- */
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  currentSearch = e.target.value.trim().toLowerCase();
+  buildCountryList();
+});
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentFilter = chip.dataset.filter;
+    buildCountryList();
+  });
+});
+document.getElementById('citiesToggle').addEventListener('change', (e) => {
+  citiesVisible = e.target.checked;
+  refreshPoints();
+});
+
+const panel = document.getElementById('panel');
+const panelToggleBtn = document.getElementById('panelToggleBtn');
+const panelHandle = document.getElementById('panelHandle');
+function togglePanel(){
+  panel.classList.toggle('collapsed');
+  panel.classList.toggle('expanded');
+}
+panelToggleBtn.addEventListener('click', togglePanel);
+panelHandle.addEventListener('click', togglePanel);
+if (window.innerWidth > 760) panel.classList.remove('collapsed');
+
+document.getElementById('resetViewBtn').addEventListener('click', () => {
+  controls.autoRotate = true;
+  userInteracted = false;
+  globe.pointOfView({ lat:20, lng:10, altitude:2.4 }, 900);
+});
+
+const hintPill = document.getElementById('hintPill');
+setTimeout(() => { hintPill.style.opacity = '0'; }, 9000);
+
+/* ---------------- animation loop ---------------- */
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  W = window.innerWidth; H = window.innerHeight;
+  camera.aspect = W/H;
+  camera.updateProjectionMatrix();
+  renderer.setSize(W, H);
+});
+
+function finishLoading(){
+  document.getElementById('loading').classList.add('hidden');
+  globe.pointOfView({ lat:20, lng:10, altitude:2.6 }, 0);
+}
+</script>
+
+</body>
+</html>
