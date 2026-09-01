@@ -11,6 +11,8 @@ ES-module imports via CDN (three.js + three-globe).
 ## Bestanden
 - `index.html` — de hele app: markup, styling en logica
 - `cities.js` — hoofdsteden + belangrijke steden (naam, land, lat/lng, continent)
+- `countries.geojson` — landgrenzen (Natural Earth 110m), lokaal meegeleverd zodat
+  de kaart niet afhankelijk is van een externe CDN-fetch die kan breken
 
 ## Features
 - Klik op een land op de bol om het te markeren als bezocht (goud) — met

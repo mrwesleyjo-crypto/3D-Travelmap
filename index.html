@@ -439,7 +439,7 @@ let hoveredId = null;
 let countryFeatures = [];
 const idOf = (feat) => feat.properties.NAME || feat.properties.ADMIN || feat.properties.name;
 
-fetch('https://unpkg.com/three-globe/example/country-polygons/ne_110m_admin_0_countries.geojson')
+fetch('./countries.geojson')
   .then(r => r.json())
   .then(data => {
     countryFeatures = data.features.filter(f => idOf(f) && idOf(f) !== 'Antarctica');
@@ -498,7 +498,6 @@ function refreshPoints(){
     .pointRadius(d => d.capital ? 0.38 : 0.24)
     .pointColor(d => d.capital ? '#f0bc63' : '#c9b8e0')
     .pointResolution(6)
-    .pointsMerge(false)
     .pointLabel(d => `<div style="font-family:Inter,sans-serif;background:rgba(14,20,32,.92);border:1px solid rgba(238,231,216,.15);padding:6px 10px;border-radius:7px;color:#eee7d8;font-size:12.5px;">
         <b style="font-family:Fraunces,serif;">${d.name}</b><br><span style="color:#a9a292;font-size:11px;">${d.capital ? 'Hoofdstad · ' : ''}${d.country}</span>
       </div>`);
