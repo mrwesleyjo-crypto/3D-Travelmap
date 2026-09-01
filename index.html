@@ -380,14 +380,17 @@
   .icon-sm-btn svg{width:15px; height:15px;}
 
   .timeline{position:relative; padding-left:6px; margin-top:8px;}
-  .timeline-item{position:relative; padding:0 0 26px 30px;}
+  .timeline-item{position:relative; padding:0 0 28px 34px;}
   .timeline-item::before{
-    content:''; position:absolute; left:5px; top:4px; bottom:-4px; width:2px; background:var(--line-strong);
+    content:''; position:absolute; left:9px; top:22px; bottom:-6px; width:0;
+    border-left:2px dashed var(--sand);
   }
   .timeline-item:last-child::before{display:none;}
   .timeline-dot{
-    position:absolute; left:0; top:2px; width:12px; height:12px; border-radius:50%;
+    position:absolute; left:0; top:0; width:20px; height:20px; border-radius:50%;
     background:var(--coral); border:2px solid var(--card); box-shadow:0 0 0 2px var(--coral);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--sans); font-size:10px; font-weight:700; color:#fff;
   }
   .timeline-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 16px; box-shadow:var(--shadow-sm);}
   .timeline-row{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
@@ -484,6 +487,60 @@
   .load-bar::after{content:''; display:block; width:40%; height:100%; background:var(--coral); animation:loadsweep 1.1s ease-in-out infinite;}
   @keyframes loadsweep{0%{transform:translateX(-100%);} 100%{transform:translateX(350%);}}
 
+  /* ---------------- Gizmo onboarding & help ---------------- */
+  .onboarding-overlay{
+    position:fixed; inset:0; z-index:70; background:rgba(51,44,34,0.4); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .onboarding-overlay.open{display:flex;}
+  .gizmo-card{
+    position:relative; width:100%; max-width:380px; background:var(--card); border-radius:24px;
+    box-shadow:var(--shadow); padding:20px 24px 24px; text-align:center;
+  }
+  .gizmo-skip{
+    position:absolute; top:14px; right:16px; background:transparent; border:none; color:var(--ink-faint);
+    font-family:var(--sans); font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .gizmo-skip:hover{color:var(--ink-soft);}
+  .gizmo-portrait{width:120px; height:120px; margin:0 auto 6px; filter:drop-shadow(0 6px 14px rgba(80,61,33,0.25));}
+  .gizmo-portrait img{width:100%; height:100%; object-fit:contain; display:block;}
+  .gizmo-bubble{
+    position:relative; background:var(--cream-deep); border-radius:16px; padding:14px 18px; margin-top:6px;
+  }
+  .gizmo-bubble::before{
+    content:''; position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+    border-left:9px solid transparent; border-right:9px solid transparent; border-bottom:9px solid var(--cream-deep);
+  }
+  .gizmo-name{font-family:var(--serif); font-weight:600; font-size:13px; color:var(--coral-deep); margin-bottom:4px;}
+  .gizmo-text{font-size:14px; color:var(--ink); line-height:1.55;}
+  .gizmo-dots{display:flex; justify-content:center; gap:6px; margin:16px 0 4px;}
+  .gizmo-dot{width:6px; height:6px; border-radius:50%; background:var(--sand); transition:background .2s ease, transform .2s ease;}
+  .gizmo-dot.active{background:var(--coral); transform:scale(1.3);}
+  .gizmo-actions{display:flex; gap:8px; margin-top:14px;}
+  .gizmo-actions .btn-ghost{display:none;}
+  .gizmo-actions.show-back .btn-ghost{display:inline-flex; align-items:center; justify-content:center;}
+  .gizmo-actions button{flex:1;}
+
+  .gizmo-fab{
+    position:fixed; right:24px; bottom:22px; z-index:18; width:56px; height:56px; border-radius:50%;
+    background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow-sm); cursor:pointer;
+    padding:5px; transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .gizmo-fab:hover{transform:translateY(-2px) scale(1.04); box-shadow:var(--shadow);}
+  .gizmo-fab img{width:100%; height:100%; object-fit:contain; display:block;}
+
+  /* Gizmo-tips in lege overzichten (i.p.v. kale placeholder-kaart) */
+  .gizmo-tip{
+    background:var(--card); border:1px solid var(--line); border-radius:20px; padding:28px 26px;
+    box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:18px; text-align:left;
+  }
+  .gizmo-tip img{width:76px; height:76px; object-fit:contain; flex:none; filter:drop-shadow(0 4px 10px rgba(80,61,33,0.2));}
+  .gizmo-tip-text{font-family:var(--serif); font-size:16px; color:var(--ink); margin-bottom:4px;}
+  .gizmo-tip-sub{font-size:12.5px; color:var(--ink-soft); line-height:1.5;}
+  @media (max-width:480px){
+    .gizmo-tip{flex-direction:column; text-align:center;}
+  }
+
   /* ---------------- mobile ---------------- */
   .panel-toggle-mobile{display:none;}
   .bottom-nav{display:none;}
@@ -492,6 +549,8 @@
     .brand-mark{font-size:17px;}
     .hint-pill{display:none;}
     .legend{left:14px; bottom:88px; padding:9px 12px;}
+    .gizmo-fab{right:14px; bottom:78px; width:48px; height:48px;}
+    .gizmo-card{max-width:340px; padding:18px 18px 20px;}
     .primary-nav{display:none;}
     .settings-pop{right:14px; top:66px;}
 
@@ -534,6 +593,26 @@
   <div class="load-title">Je wereldkaart wordt geladen</div>
   <div class="load-bar"></div>
 </div>
+
+<div class="onboarding-overlay" id="onboarding">
+  <div class="gizmo-card">
+    <button class="gizmo-skip" id="onboardSkip">Overslaan</button>
+    <div class="gizmo-portrait" id="onboardPortrait"><img src="./assets/gizmo-face.png" alt="Gizmo"></div>
+    <div class="gizmo-bubble">
+      <div class="gizmo-name">Gizmo</div>
+      <div class="gizmo-text" id="onboardText"></div>
+    </div>
+    <div class="gizmo-dots" id="onboardDots"></div>
+    <div class="gizmo-actions">
+      <button class="btn-ghost" id="onboardBack">Terug</button>
+      <button class="btn-primary" id="onboardNext">Volgende</button>
+    </div>
+  </div>
+</div>
+
+<button class="gizmo-fab" id="gizmoFab" title="Hulp van Gizmo" aria-label="Hulp van Gizmo">
+  <img src="./assets/gizmo-face.png" alt="Gizmo">
+</button>
 
 <div id="globe-container"></div>
 

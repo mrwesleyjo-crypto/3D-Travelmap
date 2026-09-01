@@ -1,4 +1,4 @@
-# Mijn Reisalbum — interactieve 3D wereldkaart (Fase 1 + 2 + 3)
+# Mijn Reisalbum — interactieve 3D wereldkaart (Fase 1 + 2 + 3 + Gizmo)
 
 ## Gebruiken
 Zet alle bestanden en mappen hieronder samen in je repo (root of `/docs`
@@ -11,76 +11,66 @@ countries.geojson
 assets/
   earth-blue-marble.jpg
   earth-topology.png
+  gizmo.png
+  gizmo-face.png
 ```
 
-Lokaal testen: `python3 -m http.server 8000` (niet als `file://` openen —
-IndexedDB en de geojson-fetch werken dan niet).
+Lokaal testen: `python3 -m http.server 8000` (niet als `file://` openen).
 
-## Fase 3 — Foto's
+## Wat is er deze keer aangepast
 
-- **Foto's toevoegen per plek**: elke plaats in een reistijdlijn heeft nu een
-  fotostrip met een "+"-tegel. Klik erop voor de bestandenkiezer, of sleep
-  foto's er direct op (drag & drop).
-- **IndexedDB, geen localStorage** — precies zoals gevraagd: foto's (die al
-  snel groot worden) gaan naar IndexedDB; localStorage blijft voor lichte
-  data (status, steden, reismetadata). Foto's worden bij het uploaden
-  automatisch teruggeschaald naar max. 1600px zodat de opslag niet
-  onnodig volloopt.
-- **Lightbox**: klik op elke foto (in de tijdlijn, een landpaneel, de
-  reisomslag, of het fotoalbum) voor een groot lichtbak-scherm met
-  pijltjestoetsen/knoppen om te bladeren, een bewerkbare bijschrift-regel,
-  en een verwijderknop.
-- **Covers**: een reiskaart en de reisdetailpagina tonen automatisch de
-  eerst-geüploade foto als omslagfoto (i.p.v. de vlag-placeholder) zodra
-  die er is.
-- **Landpagina als mini-fotoalbum**: zodra een land foto's heeft, krijgt het
-  landpaneel een hero-afbeelding bovenaan en een "Memory gallery"
-  thumbnail-grid onderaan. De statusregel toont nu ook
-  "X reizen · Y steden bezocht · Z herinneringen".
-- **Fotoalbum-pagina werkt nu echt**: alle foto's van al je reizen door
-  elkaar, met simpele filterchips (Alles / per jaar / per land) en een
-  luchtig masonry-grid.
+**Gizmo, je gids** — je eigen mascotte-afbeelding is nu daadwerkelijk in de
+app verwerkt (`assets/gizmo.png` en een uitgesneden portret
+`assets/gizmo-face.png`), met correct behouden transparantie — geen wit
+vlak achter het figuurtje, gewoon los "zwevend" in de popup.
 
-## Fase 1 & 2 (ter herinnering)
-Warme travel-journal stijl, navigatie, drie landstatussen (bezocht/
-bucketlist/niet bezocht), land selecteren met adaptieve zoom, zichtbare
-stedentoggle, reizen aanmaken met tijdlijn en route-op-de-globe. Zie de
-eerdere versies van dit bestand voor details — die functionaliteit is
-ongewijzigd gebleven.
+**Onboarding-tutorial bij eerste bezoek** — een zachte, ronde spreekbubbel-
+popup (in het warme kleurenpalet van de app, geïnspireerd op je
+concept-afbeelding maar passend bij de rest van de stijl) loodst je in 5
+korte stapjes langs: land klikken & markeren, een reis aanmaken, foto's
+toevoegen, en waar je Gizmo later terugvindt. Sla over kan altijd.
+Verschijnt maar één keer per browser (opgeslagen in localStorage); daarna
+alleen nog op verzoek.
 
-## Wat nog niet is gebouwd (Fase 4)
-- Algeheel "memories"-overzicht met extra statistieken
-- Paspoortstempels (decoratief detail per land)
-- Verdere polish/kleine animaties
+**Gizmo-hulpknop** — een rond pootje-icoontje rechtsonder (boven de
+bottom-nav op mobiel) opent de tutorial opnieuw, wanneer je maar wilt.
+
+**Vriendelijkere lege overzichten** — de kale placeholder-kaarten in Mijn
+Reizen, Bucketlist en Fotoalbum zijn vervangen door een Gizmo-tip: zijn
+portret naast een korte, warme uitleg — overal in de app dezelfde
+gidsende toon in plaats van droge systeemtekst.
+
+**Duidelijker "van stad naar stad"** — de reistijdlijn toont nu genummerde
+stops (1, 2, 3…) verbonden met een gestippelde pad-lijn, zodat de route
+door een reis expliciet als een route voelt. De knop heet nu
+"+ Volgende stop toevoegen" i.p.v. het generieke "+ Plaats toevoegen", en
+een lege tijdlijn legt via Gizmo uit wat je moet doen.
+
+## Waarom niet de exacte concept-afbeeldingen?
+- Afbeelding 1 (voetstappen-pad) was een Dreamstime-stockfoto met
+  watermerk — niet bruikbaar als asset, dus de route-op-de-kaart (al
+  gebouwd in Fase 2) en de nieuwe genummerde tijdlijn geven hetzelfde
+  "van A naar B"-gevoel zonder die afbeelding letterlijk over te nemen.
+- Afbeelding 3 (donkere houten dialoogkaart) was een stijlconcept — de
+  structuur (portret + spreekbubbel + knoppen) is overgenomen, maar dan in
+  het lichte, warme kleurenpalet van de rest van de app, zodat het niet
+  als een vreemde eend in de bijt aanvoelt.
+- Afbeelding 2 (Gizmo zelf) had wél een echte transparante achtergrond en
+  is 1-op-1 als asset gebruikt.
 
 ## Bestanden aangepast in deze update
-- **`src/main.js`** — volledige IndexedDB-laag (`reisalbum_db`, store
-  `photos`, met indexes op plaats/reis/land), afbeelding-compressie via
-  canvas, upload + drag&drop per plek, lightbox-component, fotoalbum-
-  weergave met filters, cover-logica voor reiskaarten en -detail, hero +
-  memory gallery in het landpaneel.
-- **`index.html`** — lightbox-markup en -stijl, fotostrip-stijl in de
-  tijdlijn, hero/memory-gallery-stijl, echt fotoalbum-grid i.p.v. de
-  placeholder, trip-cover met afbeelding.
-- `bundle.js` opnieuw gegenereerd.
-- `cities.js`, `countries.geojson`, de textures — ongewijzigd.
+- **`src/main.js`** — onboarding-stapmachine, Gizmo-hulpknop, gizmo-tip
+  empty states, genummerde/gestippelde reistijdlijn.
+- **`index.html`** — onboarding-overlay, spreekbubbel- en
+  portret-styling, Gizmo-hulpknop, aangepaste tijdlijn-CSS.
+- **`assets/gizmo.png`**, **`assets/gizmo-face.png`** — nieuw, uit je
+  eigen aangeleverde afbeelding gesneden en geoptimaliseerd voor web.
+- `bundle.js` opnieuw gegenereerd. Overige bestanden ongewijzigd.
 
-## Datastructuur
-```js
-// IndexedDB: reisalbum_db → store "photos" (indexes: placeId, tripId, countryKey)
-{ id, tripId, placeId, countryKey, countryName, city, blob, caption, date, createdAt }
+## Nog openstaand (Fase 4)
+- Algeheel "memories"-overzicht met extra statistieken
+- Paspoortstempels
+- Verdere polish
 
-// localStorage (ongewijzigd t.o.v. Fase 1/2)
-reisalbum_status_v1   // { [countryKey]: 'visited' | 'bucketlist' }
-reisalbum_cities_v1   // { [countryKey]: { [cityName]: true } }
-reisalbum_trips_v1    // [{ id, countryKey, countryName, name, startDate, endDate, note, places[] }]
-```
-
-## Let op
-Foto's zitten in de IndexedDB van de browser — die staat **lokaal op het
-apparaat** en gaat niet automatisch mee als je GitHub Pages opnieuw
-deployt of op een ander apparaat/browser inlogt. Een export/backup-functie
-zou een mooie toevoeging zijn voor een latere fase, mocht je dat willen.
-
-Zeg het gerust als dit goed werkt — dan pak ik Fase 4 op (memories-
-overzicht, paspoortstempels, polish).
+Laat weten hoe de tutorial en de tijdlijn nu aanvoelen — dan kan ik verder
+verfijnen of doorpakken naar Fase 4.
