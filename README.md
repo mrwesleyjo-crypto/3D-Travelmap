@@ -1,84 +1,70 @@
-# Mijn Reisalbum — Redesign Fase 1 + 2
+# Mijn Reisalbum — Redesign Fase 3: Paspoort als boek
 
 ## Gebruiken
-Zelfde bestandsstructuur als voorheen, alleen `index.html`, `bundle.js` en
-`countries.geojson` zijn gewijzigd:
+Zelfde structuur als voorheen — alleen `index.html` en `bundle.js` zijn
+gewijzigd (geen datawijzigingen, dus `countries.geojson` en `assets/`
+hoef je niet opnieuw te vervangen, maar zitten voor het gemak toch in de
+levering).
 
-```
-index.html
-bundle.js
-countries.geojson
-assets/  (ongewijzigd — gizmo*.png + leaflet/)
-```
+## Wat is er gebouwd (Fase 3)
 
-Lokaal testen: `python3 -m http.server 8000`.
+**Gesloten omslag** — als je naar 📖 Paspoort navigeert, zie je eerst een
+gesloten, koraalkleurig paspoortboekje met "PASSPORT" en je huidige
+bezoek-telling ("12 landen bezocht"). Tikken erop opent het boek.
 
-## Wat is er gebouwd (Fase 1 + 2 van je herontwerp-spec)
+**Open-animatie** — de omslag klapt open met een subtiele 3D-achtige
+rotatie (CSS `rotateY`, geen 3D-library nodig), waarna het boek soepel
+invervaagt. Elke keer dat je opnieuw naar Paspoort navigeert, begint het
+weer bij de gesloten omslag — een klein terugkerend ritueel, zoals
+gevraagd.
 
-**Fase 1 — nieuwe navigatie + rustige kaart**
-- Eén zwevende navigatiebalk onderaan, op zowel desktop als mobiel:
-  🌍 Kaart · 📖 Paspoort · ✈️ Reizen · 📷 Herinneringen.
-- De oude permanente zijbalk is weg. De kaart krijgt het hele scherm.
-- Steden staan nu **standaard uit** (aanzetten kan via ⚙ Instellingen).
-- De permanente legenda is verwijderd — kleurbetekenis staat nu in de
-  landkaart bij een klik, en wordt één keer uitgelegd via Gizmo's intro.
-- "Bucketlist" is geen aparte hoofdsectie meer. De status heet nu
-  **Wishlist** en is gewoon een van de drie statussen van een land
-  (Bezocht / Wishlist / Nog niet), zichtbaar en instelbaar via het
-  landkaartje en het Paspoort.
+**Twee pagina's naast elkaar (desktop/tablet)**
+- **Linkerpagina**: "Mijn Paspoort" titel, je voortgang (X/aantal landen,
+  percentage, voortgangsbalk), zoekbalk en filters (Alle / Bezocht /
+  Wishlist / Nog niet).
+- **Rechterpagina**: de landenlijst — tik een land voor de volledige
+  detailpagina (stempel, steden, reizen, herinneringen — allemaal je
+  bestaande functionaliteit, nu gepresenteerd als boekpagina). Een
+  "Terug naar lijst"-pijl brengt je terug naar de landenlijst-pagina.
+  Het wisselen tussen lijst en detail heeft nu een zachte
+  overvloei-/schuifovergang, alsof je een bladzijde omslaat.
 
-**Fase 2 — land-interactie**
-- Klik op een land: de kaart zoomt er vloeiend naartoe, het land krijgt
-  een duidelijke donkere rand (highlight) die blijft staan tot je een
-  ander land kiest of het kaartje sluit.
-- Er verschijnt een **compacte zwevende landkaart** (geen paneel dat de
-  kaart bedekt): vlag, naam, status, een korte statistiekregel
-  (reizen · steden · herinneringen), drie statusknoppen, en twee
-  snelkoppelingen: "📖 Paspoort" en "✈️ Reizen".
+**Mobiel: swipebaar in plaats van naast elkaar** — op smalle schermen
+staan de twee pagina's niet naast elkaar (past niet), maar swipe je er
+native tussen (CSS scroll-snap, geen extra gebaar-JS nodig — dus licht
+en soepel).
 
-## Architectuurkeuze: hergebruik i.p.v. herbouw
-Zoals gevraagd heb ik **geen rewrite** gedaan. De bestaande, werkende
-onderdelen zijn hergebruikt:
-- **Paspoort** = het bestaande uitgebreide land-paneel (zoeken, filteren,
-  stedenchecklist, reizen-sectie, memory-gallery, stempel) — dat bestond
-  al en werkte goed, het is nu alleen verplaatst van "permanente zijbalk
-  over de kaart" naar "eigen sectie via de Paspoort-navigatie".
-- **Reizen** = het bestaande, volledig werkende reizen/route-systeem
-  (inclusief "klik op de kaart om een route te bouwen" en de
-  voetstappenlijn) — ongewijzigd, alleen hernoemd van "Mijn reizen".
-- **Herinneringen** = het bestaande fotoalbum (IndexedDB) — ongewijzigd,
-  alleen hernoemd van "Fotoalbum".
+**Toegankelijkheid** — `prefers-reduced-motion` wordt gerespecteerd: de
+boek-animaties vallen dan vrijwel weg i.p.v. gedwongen te spelen.
 
-Dit betekent: **geen enkele databasemigratie nodig**. Dezelfde
-localStorage-sleutels (`reisalbum_status_v1`, `reisalbum_trips_v1`,
-`reisalbum_cities_v1`) en dezelfde IndexedDB-foto's worden gewoon
-hergebruikt. Al je bestaande bezochte landen, reizen en foto's blijven
-intact.
-
-## Wat ik heb laten staan (bewust niet verwijderd)
-- De losstaande "Bucketlist"-weergave (`renderBucketlistView()` /
-  `#viewBucketlist`) bestaat nog in de code, maar wordt nergens meer
-  vanuit de navigatie aangeroepen — hij is "slapend", niet verwijderd,
-  voor het geval je 'm later toch ergens voor wilt hergebruiken.
+## Architectuurkeuze: opnieuw hergebruik, geen rewrite
+- Alle bestaande elementen (`progressCount`, `searchInput`, `countryList`,
+  `detailView`, `detailFlag`, `detailStamp`, enzovoort) zijn **letterlijk
+  dezelfde DOM-elementen met dezelfde ID's** — alleen verplaatst naar de
+  nieuwe boek-pagina's. Geen van de render-functies (`buildCountryList`,
+  `renderDetail`, `renderCountryTripsSection`, etc.) hoefde te worden
+  aangepast.
+- De oude `#panel`-wrapper (met de open/dicht-schuifanimatie van een
+  zijbalk) is vervangen door de boek-structuur; die specifieke
+  schuif-CSS was toch niet meer nodig nu Paspoort een eigen volwaardige
+  sectie is.
+- De "Bucketlist"-status heet in de linkerpagina-filter nu ook overal
+  "Wishlist", consistent met Fase 1-2.
 
 ## Getest voor oplevering
 - Syntax-check van de gebundelde JS
-- Kruiscontrole: elk element dat de code opzoekt bestaat ook echt in de
-  HTML
-- Controle op dubbele functie/variabele-declaraties (kon zomaar gebeuren
-  bij het knippen/verplaatsen van codeblokken)
-- Bevestigd dat de opslagstructuur (localStorage-sleutels) niet is
-  veranderd — dus geen migratie nodig, bestaande data blijft werken
+- Kruiscontrole: elk element dat de code opzoekt bestaat ook in de HTML
+- Controle op dubbele functie/variabele-declaraties
+- Controle dat er geen restanten van de oude paneel-opmaak zijn
+  achtergebleven
 
-## Nog niet gebouwd (bewust — volgende fases)
-Zoals je zelf aangaf: pas doorbouwen na akkoord op wat er nu staat.
-- **Fase 3**: Paspoort als een echt "boek" met open-animatie + bladzijden
-- **Fase 4**: Artistieke, per-land unieke paspoortstempels met
-  "stempel-inslag"-animatie (nu nog de eenvoudige stempel van hiervoor)
-- **Fase 5-6**: Journey-object uitbreiden (vervoersmiddel, "Play Journey"
-  met bewegend reisicoon over de route)
-- **Fase 7**: Memories als scrapbook-album i.p.v. het huidige grid
-- **Fase 8-10**: verdere mobiele optimalisatie, animatie-polish, opruimen
+## Nog niet gebouwd (volgende fases)
+- **Fase 4**: echte artistieke, per-land unieke paspoortstempels met een
+  "stempel-inslag"-animatie wanneer een land voor het eerst op Bezocht
+  wordt gezet (nu nog de eenvoudige stempel van hiervoor)
+- **Fase 5-6**: Journey-object uitbreiden + "Play Journey"-animatie
+- **Fase 7**: Memories als scrapbook-album
+- **Fase 8-10**: mobiele optimalisatie, animatie-polish, opruimen
 
-Laat weten of dit als basis goed aanvoelt — dan ga ik door met Fase 3
-(het paspoort als boek).
+Laat weten hoe het boek aanvoelt — dan ga ik door met Fase 4 (de
+artistieke stempels).
