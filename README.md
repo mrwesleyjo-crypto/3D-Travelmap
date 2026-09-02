@@ -1,85 +1,75 @@
-# Mijn Reisalbum — Redesign compleet (Fase 1-10)
+# Mijn Reisalbum — bugfixes, piratenkaart-stijl & veel meer steden
 
 ## Gebruiken
 ```
 index.html
 bundle.js
 countries.geojson
-assets/
-  gizmo.png, gizmo-face.png, gizmo-alt.png, gizmo-alt-face.png
-  leaflet/
-    leaflet.css
-    images/ (5 bestandjes)
+assets/  (ongewijzigd — hoef je niet opnieuw te vervangen)
 ```
-Lokaal testen: `python3 -m http.server 8000` (niet als `file://` openen).
+Alleen `index.html`, `bundle.js` en `countries.geojson` zijn deze ronde
+gewijzigd.
 
-Alleen `index.html` en `bundle.js` zijn deze ronde gewijzigd — `assets/`
-en `countries.geojson` zijn ongewijzigd t.o.v. de vorige levering.
+## Je 7 punten — wat er is gebeurd
 
-## Fase 5 — Journey-object uitgebreid
-Elke reis heeft nu ook een **vervoersmiddel** (✈️ vliegtuig, 🚗 auto,
-🚆 trein, 🚌 bus, ⛴️ boot), instelbaar bij het aanmaken/bewerken van een
-reis en zichtbaar als badge naast de reistitel.
+**1 & 4. Route bouwen via klikken werkte niet** — de stedenstippen waren
+maar 4 pixels groot én niet gegarandeerd in beeld. Nu: tijdens "route
+bouwen" tonen we alléén de steden van dát land, flink vergroot (10-13px
+i.p.v. 4-5.5px), en de kaart zoomt automatisch zodat ze allemaal
+zichtbaar en klikbaar zijn.
 
-## Fase 6 — Play Journey
-Een nieuwe **"▶ Play Journey"**-knop in elke reis met 2+ herkende stops:
-- de kaart zoomt naar het startpunt
-- elke etappe wordt geanimeerd getekend, met het vervoersicoon dat
-  meebeweegt (en meedraait in de reisrichting)
-- bij aankomst verschijnt de volgende genummerde pin met een korte bounce
-- aan het eind valt alles terug op de normale, statische route
-- **`prefers-reduced-motion`**: de animatie wordt dan overgeslagen en je
-  krijgt direct de statische route te zien
+**Bonus-vondst**: tijdens het bouwen van deze fix ontdekte ik een echte
+bug — een variabele werd te laat gedeclareerd, wat de hele kaart bij het
+laden had kunnen laten crashen. Rechtgezet en getest.
 
-## Fase 7 — Herinneringen als scrapbook
-Het fotoalbum is herbouwd tot een echt **digitaal scrapbook**:
-- grote foto met locatie, datum en (indien aanwezig) een cursief
-  bijschrift eronder
-- filmstrip met kleine thumbnails, synchroon met welke foto in beeld is
-- prev/next-pijlen op desktop; **swipebaar op mobiel** (dezelfde
-  CSS-scroll-snap-aanpak als het paspoort — geen extra gebaar-code nodig)
-- klik op de grote foto voor de volledige lightbox (ongewijzigd, inclusief
-  bijschrift bewerken en verwijderen)
+**2. Play Journey "deed niks"** — ik kon dit niet 1-op-1 live reproduceren
+(geen browsertoegang beschikbaar deze sessie), maar heb wel alle gebruikte
+Leaflet-functies tegen de echte broncode geverifieerd (die kloppen), en de
+hele functie waterdicht gemaakt met try/catch/finally: als er ergens iets
+misgaat, valt de app netjes terug op de normale route in plaats van dat de
+knop permanent "vastloopt". Mocht het nu nog steeds niets doen, dan helpt
+een blik in de browserconsole (F12) enorm om de exacte oorzaak te vinden.
 
-## Fase 8 — Mobiele optimalisatie
-Gerichte controle en fixes:
-- touch-targets vergroot naar ~44px op mobiel (sluitknoppen,
-  icoon-knoppen, filters, statusknoppen)
-- scrapbook-pijlen verborgen op mobiel (swipen werkt al native)
-- gecontroleerd op horizontale overflow bij de nieuwe onderdelen
+**3. Grenslijnen zagen er slecht uit + zwart vierkant bij klikken** — de
+échte oorzaak gevonden en verholpen: **83 van de 219 landen hadden
+ongeldige, zichzelf-overlappende geometrie** in de kaartdata (een
+bijwerking van de eerdere resolutie-verbetering), plus 119 losse
+rommelfragmentjes. Dat verklaarde zowel de rare vormpjes als het zwarte
+vlak bij selectie (een dikke rand om kapotte geometrie valt extra op). Alle
+219 landen zijn nu geometrisch gevalideerd en gerepareerd.
 
-## Fase 9 — Animatie-polish
-- `prefers-reduced-motion` nu consistent toegepast op alle nieuwe
-  onderdelen (scrapbook, Play Journey, stempel-animatie)
-- subtiele hover-lift op de statistiekkaartjes, consistent met de rest
-  van de app (reiskaarten, bucketkaarten hadden dit al)
+**5. Nederland toont ook de Caribische eilanden** — bevestigd: de brondata
+had Aruba/Curaçao/Sint Maarten letterlijk onder "Netherlands" zitten,
+waardoor de zoom over de hele Atlantische Oceaan spande. Nu zoomt een
+klik altijd naar alleen het grootste (hoofd)landdeel — precies zoals
+Google Maps dat ook doet.
 
-## Fase 10 — Bug fixing & opruimen
-- **Bug gevonden en gefixt**: het bewerken van een foto-bijschrift in de
-  lightbox verversten het scrapbook niet live — nu wordt na het opslaan
-  automatisch de juiste weergave (reis, album, statistieken) bijgewerkt.
-- Laatste restjes "Bucketlist" in gebruikersgerichte tekst vervangen door
-  "Wishlist", consistent met Fase 1.
-- Volledige testroutine opnieuw gedraaid vóór oplevering: syntax-check,
-  kruiscontrole van alle DOM-verwijzingen, controle op dubbele
-  functie/variabele-declaraties — allemaal schoon.
+**6. Te weinig steden per land** — flink uitgebreid, in twéé rondes deze
+sessie: van 465 → 649 → **993 steden**. Gemiddeld nu bijna 5 steden per
+land (was 2,3), en nog maar 31 landen onder de 3 (was 164 onder de 4).
+Veel landen hebben nu 8-15+ steden om een echte, interessante route mee te
+bouwen.
 
-## Alle 10 fases nu compleet
-1. Navigatie + rustige kaart
-2. Land-interactie (zwevende landkaart)
-3. Paspoort als boek (omslag + open-animatie + bladzijden)
-4. Artistieke, per-land unieke paspoortstempels + stempel-inslag-animatie
-5. Journey-object (incl. vervoersmiddel)
-6. Play Journey-animatie
-7. Herinneringen als scrapbook-album
-8. Mobiele optimalisatie
-9. Animatie-polish
-10. Bug fixing + cleanup
+**7. Piratenkaart-stijl** — de kaart is nu een verouderde perkamentkaart
+i.p.v. een blauwe wereldkaart: warme beige/zandkleurige ondergrond met
+zachte, ongelijkmatige tinten, een subtiele papierkorrel-textuur (SVG-
+ruisfilter), vier vage koffievlekken verspreid over het scherm, een lichte
+vignet-schaduw naar de randen toe, en sepia-inktkleurige landgrenzen
+i.p.v. felle kleuren. Puur decoratief, zit nooit in de weg van het klikken.
 
-## Wat bewust niet is gebouwd
-Zoals afgesproken in de oorspronkelijke opdracht: geen accounts, geen
-sociale features, geen achievements/gamification-laag, geen backend. Alles
-blijft volledig client-side en werkt gewoon op GitHub Pages.
+## Bestanden aangepast in deze update
+- **`countries.geojson`** — alle 219 landen geometrisch gevalideerd en
+  gerepareerd (geen self-intersections meer), artefact-fragmenten
+  verwijderd.
+- **`src/cities.js`** — uitgebreid van 649 naar 993 steden.
+- **`src/main.js`** — `pickModeTrip`-declaratievolgorde gefixt (crash-
+  risico), stedenmarkers tijdens routebouwen vergroot + auto-zoom naar
+  alle beschikbare steden, `flyToFeature` gebruikt nu alleen het grootste
+  landdeel voor de zoom, `playJourney` volledig met try/catch/finally
+  omhuld, kleurenpalet aangepast naar de piratenkaart-stijl.
+- **`index.html`** — nieuwe verouderd-papier-achtergrond, papierkorrel-
+  SVG-filter, koffievlek-overlay, vignet.
+- `bundle.js` opnieuw gegenereerd.
 
-Laat weten hoe het geheel aanvoelt, of als je ergens nog een puntje wilt
-bijschaven.
+Laat weten of dit beter aanvoelt — vooral benieuwd naar Play Journey en of
+de nieuwe piratenkaart-stijl bevalt.

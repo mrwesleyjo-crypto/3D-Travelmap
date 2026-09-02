@@ -38,7 +38,31 @@
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0; height:100%; overflow:hidden; background:var(--cream); font-family:var(--sans); color:var(--ink);}
 
-  #globe-container{position:fixed; inset:0; z-index:1; cursor:grab; background:#AFD4E8;}
+  #globe-container{
+    position:fixed; inset:0; z-index:1; cursor:grab;
+    background-color:#DCC9A0;
+    background-image:
+      radial-gradient(ellipse 900px 700px at 15% 20%, rgba(255,250,235,0.35), transparent 60%),
+      radial-gradient(ellipse 800px 900px at 85% 75%, rgba(120,90,50,0.12), transparent 60%),
+      radial-gradient(ellipse 600px 500px at 60% 10%, rgba(255,250,235,0.25), transparent 55%);
+  }
+  /* piratenkaart-textuur: papierkorrel, vlekken, verouderde randen — puur decoratief, klikt nergens doorheen */
+  #mapTexture{position:fixed; inset:0; z-index:2; pointer-events:none;}
+  #mapTexture .paper-grain{
+    position:absolute; inset:0; opacity:0.5; mix-blend-mode:multiply;
+  }
+  #mapTexture .stain{
+    position:absolute; border-radius:50%; mix-blend-mode:multiply; opacity:0.5;
+    background:radial-gradient(circle, transparent 55%, rgba(120,84,44,0.35) 62%, rgba(120,84,44,0.12) 72%, transparent 78%);
+  }
+  #mapTexture .stain.s1{width:230px; height:210px; top:6%; left:4%;}
+  #mapTexture .stain.s2{width:170px; height:160px; bottom:14%; right:8%;}
+  #mapTexture .stain.s3{width:120px; height:115px; top:55%; left:50%; opacity:0.32;}
+  #mapTexture .stain.s4{width:90px; height:85px; top:20%; right:18%; opacity:0.3;}
+  #mapTexture .vignette{
+    position:absolute; inset:0;
+    box-shadow: inset 0 0 160px 40px rgba(60,42,20,0.28);
+  }
   #globe-container.grabbing{cursor:grabbing;}
   #globe-container canvas{display:block;}
 
@@ -856,6 +880,23 @@
 </button>
 
 <div id="globe-container"></div>
+
+<div id="mapTexture">
+  <svg width="0" height="0" style="position:absolute;">
+    <filter id="paperGrainFilter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.33  0 0 0 0 0.2  0 0 0 0.28 0"/>
+    </filter>
+  </svg>
+  <svg class="paper-grain" width="100%" height="100%">
+    <rect width="100%" height="100%" filter="url(#paperGrainFilter)"/>
+  </svg>
+  <div class="stain s1"></div>
+  <div class="stain s2"></div>
+  <div class="stain s3"></div>
+  <div class="stain s4"></div>
+  <div class="vignette"></div>
+</div>
 
 <div class="topbar">
   <div class="brand">
