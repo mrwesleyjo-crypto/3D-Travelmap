@@ -1,80 +1,89 @@
-# Mijn Reisalbum — interactieve 3D wereldkaart
+# Mijn Reisalbum — platte 2D wereldkaart
+
+## Grote ombouw: van 3D bol naar platte kaart
+Op je feedback dat de 3D-bol lelijk en onpraktisch aanvoelde, is de kaart nu
+volledig herbouwd als een **platte, pannable/zoombare 2D-kaart** (met
+[Leaflet](https://leafletjs.com), een lichte, veelgebruikte kaart-library —
+géén 3D meer, geen zware textures, en de bundel is daardoor ook nog eens
+9x kleiner geworden: 1,9MB → 222KB).
 
 ## Gebruiken
-Zet alle bestanden en mappen hieronder samen in je repo (root of `/docs`
-voor GitHub Pages):
+Zet alle bestanden en mappen hieronder samen in je repo:
 
 ```
 index.html
 bundle.js
 countries.geojson
 assets/
-  earth-blue-marble-light.jpg
-  earth-topology.png
   gizmo.png
   gizmo-face.png
   gizmo-alt.png
   gizmo-alt-face.png
+  leaflet/
+    leaflet.css
+    images/
+      layers.png, layers-2x.png
+      marker-icon.png, marker-icon-2x.png, marker-shadow.png
 ```
 
 Lokaal testen: `python3 -m http.server 8000` (niet als `file://` openen).
 
-## Deze update — je 5 punten
+## Wat is er veranderd
 
-**1. Meertalige landnamen** — Gizmo vraagt nu als allereerste stap "In welke
-taal wil je landnamen zien?" (Nederlands 🇳🇱 / English 🇬🇧 / Deutsch 🇩🇪 /
-Français 🇫🇷 / Español 🇪🇸). De vertaaltabel voor alle 176 landen komt uit
-de officiële ISO-landendatabase, niet uit losse aannames. Overal waar een
-landnaam wordt getoond (landpaneel, lijst, bucketlist, reizen, stempel,
-toasts) verschijnt nu de vertaalde naam. Je kunt de taal altijd wijzigen
-via ⚙ Kaartweergave → 🌐 Taal. Het "Nieuwe reis"-formulier gebruikt nu
-bovendien een echte dropdown voor het land — geen typefouten meer mogelijk,
-en dat lost meteen een deel van punt 3 en 4 op (zie hieronder).
+**Platte kaart** — landen worden getekend als gekleurde vlakken (bezocht /
+bucketlist / niet bezocht) op een lichtblauwe "oceaan"-achtergrond, zonder
+externe kaarttegels (dus geen CDN-afhankelijkheid, alles blijft lokaal en
+snel laden). Slepen om te verschuiven, scrollen/knoppen om te zoomen — een
+vertrouwde, praktische kaartervaring in plaats van een bol.
 
-**2. Lichter water op de globe** — de oceaan was bijna zwart-navy. Ik heb de
-textuur zelf bewerkt: alleen de blauwe (oceaan-)pixels zijn lichter en
-zachter gemaakt, de landkleuren zijn ongemoeid gelaten.
+**Steden gewoon zichtbaar** — alle steden (net als voorheen) staan als
+puntjes op de kaart, aan/uit te zetten via ⚙ Kaartweergave.
 
-**3 & 4. "Mijn reizen" duidelijker + de stippellijn (route) uitgelegd** —
-De kans is groot dat de route niet verscheen omdat een vrij getypte
-plaatsnaam niet overeenkwam met een bekende stad (alleen dán kan ik 'm op
-de kaart tekenen). Dat werd nergens uitgelegd. Nu:
-- **Land kiezen** gaat via een dropdown i.p.v. vrij typen — geen mismatches
-  meer.
-- Bij **"Stad" invullen** staat direct een uitleg: kies een suggestie voor
-  een plek op de kaart, of typ zelf iets — dat komt dan wél in je tijdlijn
-  maar (nog) niet op de kaart.
-- Elke stop in de tijdlijn toont nu een klein 🗺️ (staat op de kaart) of 📍
-  (nog niet herkend) icoontje.
-- Boven de tijdlijn staat een statusregel: "🗺️ Zichtbaar op de kaart" zodra
-  er 2+ herkende stops zijn, of een tip als dat nog niet zo is.
-- Na het toevoegen van een plek zegt de melding nu expliciet of hij wel of
-  niet op de kaart verscheen.
+**Punt A naar punt B: een reis bouwen door te klikken** — dit was je
+kernvraag. Open een reis en klik op **"📍 Voeg toe via de kaart"**: de app
+schakelt naar een "route bouwen"-modus (met een bannertje bovenaan) waarin
+je gewoon op steden op de kaart klikt, in de volgorde van je reis. Elke
+klik voegt direct een genummerde stop toe. Klik "Klaar" als je route
+compleet is. Typen via een formulier (de oude manier) kan nog steeds via
+"+ Typ een plek", voor plekken die niet als puntje op de kaart staan.
 
-**5. Gizmo's nieuwe uiterlijk** — je twee nieuwe afbeeldingen zijn verwerkt:
-de zwaaiende pose is nu overal Gizmo's gezicht/figuur (dezelfde bestands-
-namen, dus automatisch overal bijgewerkt), en de nadenkende pose gebruik ik
-specifiek bij de taalkeuzestap in de intro.
+**De voetstappenlijn** — tussen de stops van een reis wordt nu een
+gestippelde koraalkleurige lijn getekend (dashArray-patroon dat als een
+lichte voetstappen-route oogt), met genummerde pin-markers per stop.
+Werkt nu altijd zodra er 2+ stops met bekende coördinaten zijn — en omdat
+"Voeg toe via de kaart" alleen echte, bekende steden aanbiedt, weet je
+zeker dat de lijn verschijnt.
+
+**Overige aanpassingen**
+- De instelling "Auto-rotatie" is verwijderd (was alleen relevant voor de
+  bol).
+- Landklikken opent nog steeds het landpaneel; tijdens het bouwen van een
+  route via de kaart doet een landklik niets, zodat je stedenklikken niet
+  per ongeluk een paneel openen.
+- De "foto-indicator" op landen met herinneringen is nu een klein, statisch
+  📸-icoontje op de kaart in plaats van een geanimeerde gloed op de bol.
+- Alle overige functionaliteit (reizen, foto's/IndexedDB, bucketlist,
+  fotoalbum, paspoortstempels, meertalige landnamen, Gizmo-onboarding)
+  werkt ongewijzigd door — alleen de kaartweergave zelf is vervangen.
 
 ## Bestanden aangepast in deze update
-- **`src/translations.js`** — nieuw: vertaaltabel voor 176 landen in 5 talen.
-- **`src/main.js`** — taallogica (`displayName`, `matchCountryByAnyName`,
-  taalkeuze in onboarding + instellingen), dropdown voor land bij een
-  nieuwe reis, uitleg + status-iconen rond de route/kaart-koppeling,
-  nieuwe Gizmo-afbeeldingen.
-- **`index.html`** — CSS voor de taalkeuze-knoppen, dropdown-veld,
-  route-status-chip en kaart-badges.
-- **`assets/earth-blue-marble-light.jpg`** — nieuw, vervangt de te donkere
-  textuur.
-- **`assets/gizmo*.png`** — nieuwe afbeeldingen van je mascotte.
-- `bundle.js` opnieuw gegenereerd. `cities.js`, `countries.geojson`
-  ongewijzigd.
+- **`src/main.js`** — de hele "GLOBE"-sectie vervangen door een "KAART"-
+  sectie op basis van Leaflet: landlagen, stedenmarkers, route-tekening,
+  en de nieuwe klik-om-een-route-te-bouwen-functionaliteit. Verwijzingen
+  naar three.js/globe.gl (`world.*`, `THREE.*`, camera/pointOfView-logica)
+  zijn overal vervangen door Leaflet-equivalenten (`map.setView`,
+  `map.fitBounds`, `L.polyline`, etc.).
+- **`index.html`** — Leaflet's CSS gekoppeld, nieuwe stijlen voor de
+  kaarttooltips, route-pins, foto-badges en de "route bouwen"-banner;
+  de Auto-rotatie-instelling verwijderd.
+- **`assets/leaflet/`** — nieuw: Leaflet's CSS + iconbestanden, lokaal
+  meegeleverd (zelfde aanpak als steeds: geen externe CDN-afhankelijkheid
+  tijdens het laden).
+- **Verwijderd**: `earth-blue-marble-light.jpg`, `earth-topology.png` —
+  niet meer nodig zonder 3D-bol.
+- `bundle.js` opnieuw gegenereerd (nu 222KB i.p.v. 1,9MB, dankzij het
+  verdwijnen van three.js/globe.gl).
+- `cities.js`, `countries.geojson`, `src/translations.js` — ongewijzigd.
 
-## Scope-keuze die ik bewust heb gemaakt
-De rest van de interface (knoppen, uitleg, Gizmo's teksten) blijft
-Nederlands — alleen landnamen worden vertaald. De hele interface naar 5
-talen vertalen is een veel groter project; zeg het als je dat ook wilt, dan
-pak ik dat apart op.
-
-Laat weten of dit nu lekker werkt, vooral punt 3/4 ben ik benieuwd of de
-uitleg nu duidelijk genoeg is.
+Laat weten of dit zo een stuk praktischer aanvoelt — en of de klik-op-de-
+kaart-route precies is wat je voor ogen had.
