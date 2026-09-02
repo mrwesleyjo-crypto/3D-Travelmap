@@ -72,6 +72,24 @@
     display:flex; align-items:center; justify-content:center; font-family:var(--sans); font-size:11px; font-weight:700;
     border:2px solid var(--card); box-shadow:0 2px 6px rgba(51,44,34,0.35);
   }
+  .route-pin-wrap.bounce-in .route-pin{animation:pinBounce .45s cubic-bezier(.2,.9,.35,1.3) both;}
+  @keyframes pinBounce{0%{transform:scale(0.3); opacity:0;} 60%{transform:scale(1.25);} 100%{transform:scale(1); opacity:1;}}
+
+  .journey-travel-icon{display:flex; align-items:center; justify-content:center;}
+  .journey-icon-inner{
+    font-size:20px; display:flex; align-items:center; justify-content:center;
+    filter:drop-shadow(0 3px 5px rgba(51,44,34,0.4)); transition:transform .15s linear;
+  }
+
+  .play-journey-btn{
+    width:100%; margin:2px 0 4px; padding:11px; border-radius:12px; border:none;
+    background:linear-gradient(90deg, var(--coral), var(--gold)); color:#fff;
+    font-family:var(--sans); font-size:13px; font-weight:700; letter-spacing:0.02em; cursor:pointer;
+    box-shadow:var(--shadow-sm); transition:transform .15s ease, opacity .15s ease;
+  }
+  .play-journey-btn:hover{transform:translateY(-1px);}
+  .play-journey-btn:disabled{opacity:0.6; cursor:default; transform:none;}
+  .transport-badge{font-size:15px; vertical-align:middle;}
 
   .pick-banner{
     position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:21;
@@ -308,27 +326,48 @@
   .city-name{font-size:13.5px; color:var(--ink); flex:1;}
   .city-tag{font-size:10.5px; font-weight:700; color:var(--gold-deep); background:rgba(227,172,61,0.16); padding:2px 7px; border-radius:8px;}
 
-  /* paspoortstempel — subtiele decoratie, geen zware gamification */
+  /* paspoortstempel — artistieke, per-land SVG-stempel (Fase 4) */
   .passport-stamp{
-    width:74px; height:74px; border-radius:50%; border:2.5px dashed var(--coral-deep); flex:none;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    transform:rotate(-9deg); color:var(--coral-deep); opacity:0.85; position:relative;
-    mix-blend-mode:multiply;
+    width:78px; height:78px; flex:none; position:relative; mix-blend-mode:multiply;
   }
-  .passport-stamp::before{
-    content:''; position:absolute; inset:5px; border:1px solid var(--coral-deep); border-radius:50%; opacity:0.55;
+  .passport-stamp.small{width:50px; height:50px;}
+  .stamp-svg{width:100%; height:100%; display:block; overflow:visible;}
+
+  /* stempel-inslag-animatie */
+  .stamp-anim-overlay{
+    position:fixed; inset:0; z-index:80; background:rgba(51,44,34,0.5); backdrop-filter:blur(3px);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
   }
-  .stamp-country{font-size:7.5px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; max-width:56px; text-align:center; line-height:1.1;}
-  .stamp-icon{font-size:15px; margin:2px 0;}
-  .stamp-year{font-size:9px; font-weight:800; letter-spacing:0.06em;}
-  .passport-stamp.small{width:46px; height:46px; transform:rotate(-9deg) scale(0.62); margin:0;}
+  .stamp-anim-overlay.show{opacity:1; pointer-events:auto;}
+  .stamp-anim-card{
+    background:var(--card); border-radius:22px; padding:32px 34px 28px; text-align:center;
+    box-shadow:0 30px 70px rgba(0,0,0,0.4); max-width:280px;
+  }
+  .stamp-anim-label{font-size:11.5px; font-weight:700; letter-spacing:0.08em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:6px;}
+  .stamp-anim-name{font-family:var(--serif); font-size:19px; font-weight:600; color:var(--ink); margin-bottom:22px;}
+  .stamp-anim-stampwrap{display:flex; align-items:center; justify-content:center; height:120px;}
+  .stamp-anim-stamp{width:120px; height:120px;}
+  .stamp-anim-stamp .stamp-svg{
+    animation:stampImpact .68s cubic-bezier(.2,.9,.35,1.15) both;
+  }
+  @keyframes stampImpact{
+    0%{ transform:translateY(-90px) rotate(-30deg) scale(0.5); opacity:0; }
+    55%{ transform:translateY(6px) rotate(4deg) scale(1.08); opacity:1; }
+    75%{ transform:translateY(-3px) rotate(-2deg) scale(0.97); }
+    100%{ transform:translateY(0) rotate(-4deg) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .stamp-anim-stamp .stamp-svg{animation:none;}
+  }
 
   /* memories-statistiekenstrip (Fotoalbum) */
   .stats-strip{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;}
   .stat-card{
     flex:1; min-width:140px; background:var(--card); border:1px solid var(--line); border-radius:16px;
-    padding:14px 16px; box-shadow:var(--shadow-sm);
+    padding:14px 16px; box-shadow:var(--shadow-sm); transition:transform .18s ease, box-shadow .18s ease;
   }
+  .stat-card:hover{transform:translateY(-2px); box-shadow:var(--shadow);}
   .stat-num{font-family:var(--serif); font-size:22px; font-weight:600; color:var(--ink);}
   .stat-label{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
   .stat-card.wide{flex:2; min-width:220px;}
@@ -366,14 +405,52 @@
   .photo-add-tile:hover{background:var(--cream); border-color:var(--ink-faint); color:var(--ink-soft);}
   .photo-add-tile.dragover{background:var(--cream-deep); border-color:var(--coral); color:var(--coral-deep);}
 
-  /* fotoalbum grid */
-  .album-grid{column-count:2; column-gap:10px; margin-top:8px;}
-  .album-thumb{
-    break-inside:avoid; margin-bottom:10px; border-radius:14px; overflow:hidden; cursor:pointer;
-    background:var(--sand); box-shadow:var(--shadow-sm);
+  /* herinneringen: scrapbook-spread (Fase 7) */
+  .scrapbook{position:relative; margin-top:8px;}
+  .scrapbook-spread{
+    display:flex; overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+    border-radius:20px; background:var(--card); box-shadow:var(--shadow-sm);
+    scrollbar-width:none;
   }
-  .album-thumb img{width:100%; display:block;}
-  @media (min-width:560px){ .album-grid{column-count:3;} }
+  .scrapbook-spread::-webkit-scrollbar{display:none;}
+  .scrapbook-page{
+    flex:none; width:100%; scroll-snap-align:start;
+    display:flex; flex-direction:column; align-items:center; padding:32px 32px 26px;
+  }
+  .scrapbook-photo-wrap{
+    width:100%; max-width:520px; aspect-ratio:4/3; border-radius:14px; overflow:hidden;
+    box-shadow:0 14px 34px rgba(51,44,34,0.22); background:var(--sand); cursor:pointer;
+  }
+  .scrapbook-photo{width:100%; height:100%; object-fit:cover; display:block; transition:transform .3s ease;}
+  .scrapbook-photo-wrap:hover .scrapbook-photo{transform:scale(1.03);}
+  .scrapbook-caption{text-align:center; margin-top:18px; max-width:480px;}
+  .scrapbook-location{font-family:var(--serif); font-size:19px; font-weight:600; color:var(--ink);}
+  .scrapbook-date{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .scrapbook-note{font-family:var(--serif); font-style:italic; font-size:14px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
+
+  .scrapbook-nav{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:2; width:40px; height:40px; border-radius:50%;
+    background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow-sm); color:var(--ink);
+    font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .scrapbook-nav:hover{background:var(--cream-deep);}
+  .scrapbook-nav.prev{left:-14px;} .scrapbook-nav.next{right:-14px;}
+
+  .scrapbook-filmstrip{
+    display:flex; gap:8px; overflow-x:auto; margin-top:14px; padding:2px 2px 8px; -webkit-overflow-scrolling:touch;
+  }
+  .filmstrip-thumb{
+    flex:none; width:52px; height:52px; border-radius:10px; overflow:hidden; cursor:pointer;
+    opacity:0.55; transition:opacity .18s ease, transform .18s ease; border:2px solid transparent;
+  }
+  .filmstrip-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .filmstrip-thumb.active{opacity:1; border-color:var(--coral); transform:scale(1.06);}
+
+  @media (max-width:760px){
+    .scrapbook-nav{display:none;}
+    .scrapbook-page{padding:20px 16px 18px;}
+    .scrapbook-photo-wrap{aspect-ratio:1/1;}
+  }
 
   /* lightbox */
   .lightbox{
@@ -640,8 +717,10 @@
 
   @media (prefers-reduced-motion: reduce){
     .passport-cover, .passport-book, .country-list, .detail-view, .gizmo-dot,
-    .fn-item, .country-card, .icon-btn, .settings-pop{
-      transition-duration:.01ms !important;
+    .fn-item, .country-card, .icon-btn, .settings-pop,
+    .scrapbook-photo, .filmstrip-thumb, .trip-card, .bucket-card, .stat-card,
+    .route-pin-wrap.bounce-in .route-pin, .journey-icon-inner{
+      transition-duration:.01ms !important; animation-duration:.01ms !important;
     }
   }
 
@@ -735,6 +814,15 @@
     .view-overlay{padding:88px 16px 96px;}
     .view-header-row{flex-direction:column; gap:12px;}
     .trip-detail-header{flex-direction:column;}
+
+    /* toegankelijkheid: touch-targets minimaal ~44px op mobiel */
+    .icon-sm-btn{width:44px; height:44px;}
+    .cc-close{width:32px; height:32px; top:8px; right:10px; font-size:22px;}
+    .lb-close, .lb-nav{width:44px; height:44px;}
+    .chip{padding:9px 14px;}
+    .status-btn, .cc-status-btn{padding:12px 4px;}
+    .scrapbook-nav{display:none;} /* op mobiel swipe je, geen losse pijlknoppen nodig */
+    .filmstrip-thumb{width:48px; height:48px;}
   }
 </style>
 </head>
@@ -937,7 +1025,7 @@
 
 <div class="view-overlay" id="viewBucketlist">
   <div class="view-inner">
-    <div class="view-title">Bucketlist</div>
+    <div class="view-title">Wishlist</div>
     <div class="view-subtitle">De landen waar je nog van droomt.</div>
     <div id="bucketlistContent"></div>
   </div>
@@ -945,13 +1033,15 @@
 
 <div class="view-overlay" id="viewAlbum">
   <div class="view-inner">
-    <div class="view-title">Fotoalbum</div>
-    <div class="view-subtitle">Al je herinneringen op één plek.</div>
+    <div class="view-title">Herinneringen</div>
+    <div class="view-subtitle">Je digitale reisdagboek — een scrapbook vol momenten.</div>
     <div id="memoryStats"></div>
     <div class="filter-chips" id="albumFilters"></div>
-    <div id="albumGrid"></div>
+    <div id="albumScrapbook"></div>
   </div>
 </div>
+
+<div class="stamp-anim-overlay" id="stampAnimOverlay"></div>
 
 <div class="lightbox" id="lightbox">
   <button class="lb-close" id="lightboxClose" aria-label="Sluiten">

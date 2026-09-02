@@ -1,70 +1,85 @@
-# Mijn Reisalbum — Redesign Fase 3: Paspoort als boek
+# Mijn Reisalbum — Redesign compleet (Fase 1-10)
 
 ## Gebruiken
-Zelfde structuur als voorheen — alleen `index.html` en `bundle.js` zijn
-gewijzigd (geen datawijzigingen, dus `countries.geojson` en `assets/`
-hoef je niet opnieuw te vervangen, maar zitten voor het gemak toch in de
-levering).
+```
+index.html
+bundle.js
+countries.geojson
+assets/
+  gizmo.png, gizmo-face.png, gizmo-alt.png, gizmo-alt-face.png
+  leaflet/
+    leaflet.css
+    images/ (5 bestandjes)
+```
+Lokaal testen: `python3 -m http.server 8000` (niet als `file://` openen).
 
-## Wat is er gebouwd (Fase 3)
+Alleen `index.html` en `bundle.js` zijn deze ronde gewijzigd — `assets/`
+en `countries.geojson` zijn ongewijzigd t.o.v. de vorige levering.
 
-**Gesloten omslag** — als je naar 📖 Paspoort navigeert, zie je eerst een
-gesloten, koraalkleurig paspoortboekje met "PASSPORT" en je huidige
-bezoek-telling ("12 landen bezocht"). Tikken erop opent het boek.
+## Fase 5 — Journey-object uitgebreid
+Elke reis heeft nu ook een **vervoersmiddel** (✈️ vliegtuig, 🚗 auto,
+🚆 trein, 🚌 bus, ⛴️ boot), instelbaar bij het aanmaken/bewerken van een
+reis en zichtbaar als badge naast de reistitel.
 
-**Open-animatie** — de omslag klapt open met een subtiele 3D-achtige
-rotatie (CSS `rotateY`, geen 3D-library nodig), waarna het boek soepel
-invervaagt. Elke keer dat je opnieuw naar Paspoort navigeert, begint het
-weer bij de gesloten omslag — een klein terugkerend ritueel, zoals
-gevraagd.
+## Fase 6 — Play Journey
+Een nieuwe **"▶ Play Journey"**-knop in elke reis met 2+ herkende stops:
+- de kaart zoomt naar het startpunt
+- elke etappe wordt geanimeerd getekend, met het vervoersicoon dat
+  meebeweegt (en meedraait in de reisrichting)
+- bij aankomst verschijnt de volgende genummerde pin met een korte bounce
+- aan het eind valt alles terug op de normale, statische route
+- **`prefers-reduced-motion`**: de animatie wordt dan overgeslagen en je
+  krijgt direct de statische route te zien
 
-**Twee pagina's naast elkaar (desktop/tablet)**
-- **Linkerpagina**: "Mijn Paspoort" titel, je voortgang (X/aantal landen,
-  percentage, voortgangsbalk), zoekbalk en filters (Alle / Bezocht /
-  Wishlist / Nog niet).
-- **Rechterpagina**: de landenlijst — tik een land voor de volledige
-  detailpagina (stempel, steden, reizen, herinneringen — allemaal je
-  bestaande functionaliteit, nu gepresenteerd als boekpagina). Een
-  "Terug naar lijst"-pijl brengt je terug naar de landenlijst-pagina.
-  Het wisselen tussen lijst en detail heeft nu een zachte
-  overvloei-/schuifovergang, alsof je een bladzijde omslaat.
+## Fase 7 — Herinneringen als scrapbook
+Het fotoalbum is herbouwd tot een echt **digitaal scrapbook**:
+- grote foto met locatie, datum en (indien aanwezig) een cursief
+  bijschrift eronder
+- filmstrip met kleine thumbnails, synchroon met welke foto in beeld is
+- prev/next-pijlen op desktop; **swipebaar op mobiel** (dezelfde
+  CSS-scroll-snap-aanpak als het paspoort — geen extra gebaar-code nodig)
+- klik op de grote foto voor de volledige lightbox (ongewijzigd, inclusief
+  bijschrift bewerken en verwijderen)
 
-**Mobiel: swipebaar in plaats van naast elkaar** — op smalle schermen
-staan de twee pagina's niet naast elkaar (past niet), maar swipe je er
-native tussen (CSS scroll-snap, geen extra gebaar-JS nodig — dus licht
-en soepel).
+## Fase 8 — Mobiele optimalisatie
+Gerichte controle en fixes:
+- touch-targets vergroot naar ~44px op mobiel (sluitknoppen,
+  icoon-knoppen, filters, statusknoppen)
+- scrapbook-pijlen verborgen op mobiel (swipen werkt al native)
+- gecontroleerd op horizontale overflow bij de nieuwe onderdelen
 
-**Toegankelijkheid** — `prefers-reduced-motion` wordt gerespecteerd: de
-boek-animaties vallen dan vrijwel weg i.p.v. gedwongen te spelen.
+## Fase 9 — Animatie-polish
+- `prefers-reduced-motion` nu consistent toegepast op alle nieuwe
+  onderdelen (scrapbook, Play Journey, stempel-animatie)
+- subtiele hover-lift op de statistiekkaartjes, consistent met de rest
+  van de app (reiskaarten, bucketkaarten hadden dit al)
 
-## Architectuurkeuze: opnieuw hergebruik, geen rewrite
-- Alle bestaande elementen (`progressCount`, `searchInput`, `countryList`,
-  `detailView`, `detailFlag`, `detailStamp`, enzovoort) zijn **letterlijk
-  dezelfde DOM-elementen met dezelfde ID's** — alleen verplaatst naar de
-  nieuwe boek-pagina's. Geen van de render-functies (`buildCountryList`,
-  `renderDetail`, `renderCountryTripsSection`, etc.) hoefde te worden
-  aangepast.
-- De oude `#panel`-wrapper (met de open/dicht-schuifanimatie van een
-  zijbalk) is vervangen door de boek-structuur; die specifieke
-  schuif-CSS was toch niet meer nodig nu Paspoort een eigen volwaardige
-  sectie is.
-- De "Bucketlist"-status heet in de linkerpagina-filter nu ook overal
-  "Wishlist", consistent met Fase 1-2.
+## Fase 10 — Bug fixing & opruimen
+- **Bug gevonden en gefixt**: het bewerken van een foto-bijschrift in de
+  lightbox verversten het scrapbook niet live — nu wordt na het opslaan
+  automatisch de juiste weergave (reis, album, statistieken) bijgewerkt.
+- Laatste restjes "Bucketlist" in gebruikersgerichte tekst vervangen door
+  "Wishlist", consistent met Fase 1.
+- Volledige testroutine opnieuw gedraaid vóór oplevering: syntax-check,
+  kruiscontrole van alle DOM-verwijzingen, controle op dubbele
+  functie/variabele-declaraties — allemaal schoon.
 
-## Getest voor oplevering
-- Syntax-check van de gebundelde JS
-- Kruiscontrole: elk element dat de code opzoekt bestaat ook in de HTML
-- Controle op dubbele functie/variabele-declaraties
-- Controle dat er geen restanten van de oude paneel-opmaak zijn
-  achtergebleven
+## Alle 10 fases nu compleet
+1. Navigatie + rustige kaart
+2. Land-interactie (zwevende landkaart)
+3. Paspoort als boek (omslag + open-animatie + bladzijden)
+4. Artistieke, per-land unieke paspoortstempels + stempel-inslag-animatie
+5. Journey-object (incl. vervoersmiddel)
+6. Play Journey-animatie
+7. Herinneringen als scrapbook-album
+8. Mobiele optimalisatie
+9. Animatie-polish
+10. Bug fixing + cleanup
 
-## Nog niet gebouwd (volgende fases)
-- **Fase 4**: echte artistieke, per-land unieke paspoortstempels met een
-  "stempel-inslag"-animatie wanneer een land voor het eerst op Bezocht
-  wordt gezet (nu nog de eenvoudige stempel van hiervoor)
-- **Fase 5-6**: Journey-object uitbreiden + "Play Journey"-animatie
-- **Fase 7**: Memories als scrapbook-album
-- **Fase 8-10**: mobiele optimalisatie, animatie-polish, opruimen
+## Wat bewust niet is gebouwd
+Zoals afgesproken in de oorspronkelijke opdracht: geen accounts, geen
+sociale features, geen achievements/gamification-laag, geen backend. Alles
+blijft volledig client-side en werkt gewoon op GitHub Pages.
 
-Laat weten hoe het boek aanvoelt — dan ga ik door met Fase 4 (de
-artistieke stempels).
+Laat weten hoe het geheel aanvoelt, of als je ergens nog een puntje wilt
+bijschaven.
