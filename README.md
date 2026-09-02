@@ -1,70 +1,84 @@
-# Mijn Reisalbum — platte 2D wereldkaart
+# Mijn Reisalbum — Redesign Fase 1 + 2
 
 ## Gebruiken
-Zet alle bestanden en mappen hieronder samen in je repo:
+Zelfde bestandsstructuur als voorheen, alleen `index.html`, `bundle.js` en
+`countries.geojson` zijn gewijzigd:
 
 ```
 index.html
 bundle.js
 countries.geojson
-assets/
-  gizmo.png, gizmo-face.png, gizmo-alt.png, gizmo-alt-face.png
-  leaflet/
-    leaflet.css
-    images/ (5 bestandjes)
+assets/  (ongewijzigd — gizmo*.png + leaflet/)
 ```
 
-Lokaal testen: `python3 -m http.server 8000` (niet als `file://` openen).
+Lokaal testen: `python3 -m http.server 8000`.
 
-## Deze update — je 2 punten
+## Wat is er gebouwd (Fase 1 + 2 van je herontwerp-spec)
 
-**1. "Punt A naar B lukt niet, er zijn niet genoeg steden"** — je had he-
-lemaal gelijk: 166 van de 199 landen hadden maar 1 stad (alleen de hoofd-
-stad). Een route van A naar B bouwen was voor 83% van de landen dus
-letterlijk onmogelijk. Ik heb de stedenlijst flink uitgebreid: van 240 naar
-**465 steden**, waarmee nu **117 landen 2 of meer steden** hebben
-(gemiddeld 2,3 per land i.p.v. 1,2). Populaire reisbestemmingen (Thailand,
-Marokko, Mexico, Griekenland, Vietnam, Italië, Peru, etc.) hebben nu vaak
-4-8 steden, genoeg om een echte meerdaagse route mee te bouwen via
-"📍 Voeg toe via de kaart".
+**Fase 1 — nieuwe navigatie + rustige kaart**
+- Eén zwevende navigatiebalk onderaan, op zowel desktop als mobiel:
+  🌍 Kaart · 📖 Paspoort · ✈️ Reizen · 📷 Herinneringen.
+- De oude permanente zijbalk is weg. De kaart krijgt het hele scherm.
+- Steden staan nu **standaard uit** (aanzetten kan via ⚙ Instellingen).
+- De permanente legenda is verwijderd — kleurbetekenis staat nu in de
+  landkaart bij een klik, en wordt één keer uitgelegd via Gizmo's intro.
+- "Bucketlist" is geen aparte hoofdsectie meer. De status heet nu
+  **Wishlist** en is gewoon een van de drie statussen van een land
+  (Bezocht / Wishlist / Nog niet), zichtbaar en instelbaar via het
+  landkaartje en het Paspoort.
 
-**2. Slechte kwaliteit landgrenzen van dichtbij** — de oorzaak: de vorige
-kaartdata was bedoeld voor overzicht op wereldschaal (1:110 miljoen), veel
-te grof om op in te zoomen. Ik heb de hele landendataset vervangen door
-een **10x preciezere bron** (10km-resolutie i.p.v. 110km), gebaseerd op
-OpenStreetMap/Natural Earth. Grenzen en kustlijnen ogen nu echt vloeiend,
-ook van dichtbij.
+**Fase 2 — land-interactie**
+- Klik op een land: de kaart zoomt er vloeiend naartoe, het land krijgt
+  een duidelijke donkere rand (highlight) die blijft staan tot je een
+  ander land kiest of het kaartje sluit.
+- Er verschijnt een **compacte zwevende landkaart** (geen paneel dat de
+  kaart bedekt): vlag, naam, status, een korte statistiekregel
+  (reizen · steden · herinneringen), drie statusknoppen, en twee
+  snelkoppelingen: "📖 Paspoort" en "✈️ Reizen".
 
-**Bijvangst van de datavervanging**: de nieuwe bron kent ook een paar
-landen die de oude, grovere data helemaal miste (bijv. Moldavië, Syrië nu
-met correcte volledige naam i.p.v. afkortingen als "UK"/"UAE" die de
-brondata soms gaf — die heb ik met de hand gecorrigeerd naar volledige
-namen).
+## Architectuurkeuze: hergebruik i.p.v. herbouw
+Zoals gevraagd heb ik **geen rewrite** gedaan. De bestaande, werkende
+onderdelen zijn hergebruikt:
+- **Paspoort** = het bestaande uitgebreide land-paneel (zoeken, filteren,
+  stedenchecklist, reizen-sectie, memory-gallery, stempel) — dat bestond
+  al en werkte goed, het is nu alleen verplaatst van "permanente zijbalk
+  over de kaart" naar "eigen sectie via de Paspoort-navigatie".
+- **Reizen** = het bestaande, volledig werkende reizen/route-systeem
+  (inclusief "klik op de kaart om een route te bouwen" en de
+  voetstappenlijn) — ongewijzigd, alleen hernoemd van "Mijn reizen".
+- **Herinneringen** = het bestaande fotoalbum (IndexedDB) — ongewijzigd,
+  alleen hernoemd van "Fotoalbum".
 
-**Eerlijke kanttekening**: 7 hele kleine landen (Monaco, San Marino,
-Vaticaanstad, Malediven, Saint Kitts en Nevis, Nauru, Tuvalu) hebben in
-deze precisere bron geen eigen landvlak — ze zijn te klein voor een
-10km-resolutie dataset om als aparte polygon te tekenen. Hun hoofdsteden
-staan wél gewoon als stedenmarker op de kaart en zijn bruikbaar voor
-routes; alleen "klik het land aan om te markeren als bezocht" werkt voor
-die 7 landen niet. Gezien het gaat om de kleinste micro-staten ter wereld
-is dat een bewuste, verantwoorde afweging tegenover de veel betere
-kwaliteit voor de overige 219 landen.
+Dit betekent: **geen enkele databasemigratie nodig**. Dezelfde
+localStorage-sleutels (`reisalbum_status_v1`, `reisalbum_trips_v1`,
+`reisalbum_cities_v1`) en dezelfde IndexedDB-foto's worden gewoon
+hergebruikt. Al je bestaande bezochte landen, reizen en foto's blijven
+intact.
 
-## Bestanden aangepast in deze update
-- **`countries.geojson`** — volledig vervangen door een 10km-resolutie
-  dataset (`@geo-maps/countries-land-10km`, OSM/Natural Earth-gebaseerd),
-  met opnieuw gegenereerde `NAME`/`ISO_A2`-velden zodat de rest van de app
-  ongewijzigd kan blijven werken.
-- **`src/translations.js`** — opnieuw gegenereerd op basis van de nieuwe,
-  completere landenset (219 landen i.p.v. 176), met handmatige correcties
-  voor een paar landen waar de brondata een afkorting of omslachtige
-  officiële naam gaf (bijv. "UK" → "United Kingdom", twee keer "Congo" →
-  "Congo" / "Congo (DRC)").
-- **`src/main.js`** — twee verouderde naam-aliassen gecorrigeerd
-  (Tsjechië/Eswatini wezen naar niet meer bestaande sleutels).
-- **`src/cities.js`** — uitgebreid van 240 naar 465 steden.
-- `bundle.js` opnieuw gegenereerd.
+## Wat ik heb laten staan (bewust niet verwijderd)
+- De losstaande "Bucketlist"-weergave (`renderBucketlistView()` /
+  `#viewBucketlist`) bestaat nog in de code, maar wordt nergens meer
+  vanuit de navigatie aangeroepen — hij is "slapend", niet verwijderd,
+  voor het geval je 'm later toch ergens voor wilt hergebruiken.
 
-Laat weten of de kaart nu scherp genoeg oogt en of je nu genoeg steden
-hebt om routes mee te bouwen voor de landen die je in gedachten had.
+## Getest voor oplevering
+- Syntax-check van de gebundelde JS
+- Kruiscontrole: elk element dat de code opzoekt bestaat ook echt in de
+  HTML
+- Controle op dubbele functie/variabele-declaraties (kon zomaar gebeuren
+  bij het knippen/verplaatsen van codeblokken)
+- Bevestigd dat de opslagstructuur (localStorage-sleutels) niet is
+  veranderd — dus geen migratie nodig, bestaande data blijft werken
+
+## Nog niet gebouwd (bewust — volgende fases)
+Zoals je zelf aangaf: pas doorbouwen na akkoord op wat er nu staat.
+- **Fase 3**: Paspoort als een echt "boek" met open-animatie + bladzijden
+- **Fase 4**: Artistieke, per-land unieke paspoortstempels met
+  "stempel-inslag"-animatie (nu nog de eenvoudige stempel van hiervoor)
+- **Fase 5-6**: Journey-object uitbreiden (vervoersmiddel, "Play Journey"
+  met bewegend reisicoon over de route)
+- **Fase 7**: Memories als scrapbook-album i.p.v. het huidige grid
+- **Fase 8-10**: verdere mobiele optimalisatie, animatie-polish, opruimen
+
+Laat weten of dit als basis goed aanvoelt — dan ga ik door met Fase 3
+(het paspoort als boek).
