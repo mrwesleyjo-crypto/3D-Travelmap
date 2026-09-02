@@ -185,6 +185,7 @@
   .detail-back:hover{color:var(--ink);}
 
   .detail-header{display:flex; align-items:center; gap:12px; padding:10px 0 16px;}
+  .detail-header .stamp-slot{margin-left:auto;}
   .detail-flag{font-size:38px; line-height:1;}
   .detail-name{font-family:var(--serif); font-size:24px; font-weight:600; color:var(--ink); line-height:1.1;}
   .detail-capital{font-size:12.5px; color:var(--ink-soft); margin-top:3px;}
@@ -223,6 +224,32 @@
   .city-row.checked .city-check svg{opacity:1; transform:scale(1);}
   .city-name{font-size:13.5px; color:var(--ink); flex:1;}
   .city-tag{font-size:10.5px; font-weight:700; color:var(--gold-deep); background:rgba(227,172,61,0.16); padding:2px 7px; border-radius:8px;}
+
+  /* paspoortstempel — subtiele decoratie, geen zware gamification */
+  .passport-stamp{
+    width:74px; height:74px; border-radius:50%; border:2.5px dashed var(--coral-deep); flex:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transform:rotate(-9deg); color:var(--coral-deep); opacity:0.85; position:relative;
+    mix-blend-mode:multiply;
+  }
+  .passport-stamp::before{
+    content:''; position:absolute; inset:5px; border:1px solid var(--coral-deep); border-radius:50%; opacity:0.55;
+  }
+  .stamp-country{font-size:7.5px; font-weight:800; letter-spacing:0.07em; text-transform:uppercase; max-width:56px; text-align:center; line-height:1.1;}
+  .stamp-icon{font-size:15px; margin:2px 0;}
+  .stamp-year{font-size:9px; font-weight:800; letter-spacing:0.06em;}
+  .passport-stamp.small{width:46px; height:46px; transform:rotate(-9deg) scale(0.62); margin:0;}
+
+  /* memories-statistiekenstrip (Fotoalbum) */
+  .stats-strip{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;}
+  .stat-card{
+    flex:1; min-width:140px; background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:14px 16px; box-shadow:var(--shadow-sm);
+  }
+  .stat-num{font-family:var(--serif); font-size:22px; font-weight:600; color:var(--ink);}
+  .stat-label{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .stat-card.wide{flex:2; min-width:220px;}
+  .stat-card.wide .stat-num{font-size:15px;}
 
   .detail-hero{
     width:100%; height:0; border-radius:16px; overflow:hidden; margin:10px 0 -4px; background:var(--sand);
@@ -395,6 +422,17 @@
   .timeline-card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:13px 16px; box-shadow:var(--shadow-sm);}
   .timeline-row{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
   .timeline-city{font-family:var(--serif); font-size:16px; font-weight:600; color:var(--ink);}
+  .map-badge{font-size:11px; opacity:0.55; vertical-align:middle;}
+  .map-badge.on{opacity:1;}
+  .timeline-section-title{
+    display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:var(--ink-soft);
+    margin:18px 0 4px;
+  }
+  .route-chip{
+    font-size:11px; font-weight:600; color:var(--ink-soft); background:var(--cream-deep);
+    padding:3px 9px; border-radius:20px;
+  }
+  .route-chip.on{background:rgba(232,120,90,0.16); color:var(--coral-deep);}
   .timeline-date{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
   .timeline-note{font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.5;}
   .timeline-remove{color:var(--ink-faint); cursor:pointer; font-size:16px; line-height:1; flex:none;}
@@ -438,6 +476,8 @@
     background:var(--cream); color:var(--ink); font-family:var(--sans); font-size:13.5px; outline:none;
   }
   .field-input:focus{border-color:var(--ocean);}
+  .field-hint{font-size:11.5px; color:var(--ink-soft); margin-top:5px; line-height:1.4;}
+  select.field-input{appearance:auto;}
   textarea.field-input{resize:vertical; min-height:64px;}
   .field-row{display:flex; gap:10px;}
   .field-row > div{flex:1;}
@@ -521,6 +561,16 @@
   .gizmo-actions.show-back .btn-ghost{display:inline-flex; align-items:center; justify-content:center;}
   .gizmo-actions button{flex:1;}
 
+  .gizmo-lang-grid{display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;}
+  .gizmo-lang-grid.active{display:grid;}
+  .gizmo-lang-btn{
+    display:flex; align-items:center; gap:8px; padding:11px 12px; border-radius:12px;
+    border:1.5px solid var(--line-strong); background:var(--card); color:var(--ink); font-family:var(--sans);
+    font-size:13.5px; font-weight:600; cursor:pointer; transition:all .15s ease;
+  }
+  .gizmo-lang-btn:hover{border-color:var(--coral); background:var(--cream-deep);}
+  .gizmo-lang-btn .lb-flag{font-size:17px;}
+
   .gizmo-fab{
     position:fixed; right:24px; bottom:22px; z-index:18; width:56px; height:56px; border-radius:50%;
     background:var(--card); border:1px solid var(--line); box-shadow:var(--shadow-sm); cursor:pointer;
@@ -603,7 +653,8 @@
       <div class="gizmo-text" id="onboardText"></div>
     </div>
     <div class="gizmo-dots" id="onboardDots"></div>
-    <div class="gizmo-actions">
+    <div class="gizmo-lang-grid" id="onboardLangGrid"></div>
+    <div class="gizmo-actions" id="onboardActions">
       <button class="btn-ghost" id="onboardBack">Terug</button>
       <button class="btn-primary" id="onboardNext">Volgende</button>
     </div>
@@ -660,6 +711,10 @@
       <span class="switch-track"></span>
     </label>
   </div>
+  <div class="setting-row" style="display:block;">
+    <span class="setting-label">🌐 Taal van landnamen</span>
+    <select id="langSelect" class="field-input" style="margin-top:8px; padding:8px 10px; font-size:13px;"></select>
+  </div>
   <button class="settings-reset" id="resetViewBtn">Reset weergave</button>
 </div>
 
@@ -715,6 +770,7 @@
           <div class="detail-name" id="detailName">—</div>
           <div class="detail-capital" id="detailCapital"></div>
         </div>
+        <div class="stamp-slot" id="detailStamp"></div>
       </div>
 
       <div class="status-segment">
@@ -769,6 +825,7 @@
   <div class="view-inner">
     <div class="view-title">Fotoalbum</div>
     <div class="view-subtitle">Al je herinneringen op één plek.</div>
+    <div id="memoryStats"></div>
     <div class="filter-chips" id="albumFilters"></div>
     <div id="albumGrid"></div>
   </div>
